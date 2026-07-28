@@ -25,6 +25,9 @@
   <a href="https://github.com/Vedant2402/ConnectUs">
     <img src="https://img.shields.io/badge/Day%202-Complete-brightgreen" alt="Day 2 complete">
   </a>
+  <a href="https://github.com/Vedant2402/ConnectUs">
+    <img src="https://img.shields.io/badge/Day%203-In%20Progress-orange" alt="Day 3 in progress">
+  </a>
 </p>
 
 ---
@@ -43,6 +46,14 @@ Day 2 improved the messaging experience with unread counters, reliable last-read
 tracking, typing feedback, online presence, real-time homepage updates,
 conversation filtering, message grouping, date separators, session restoration,
 and editable profile settings.
+
+### Day 3 — In Progress
+
+Day 3 introduces the ConnectUs visual identity and a modern mobile navigation
+experience. The application now includes a custom cross-platform launcher icon,
+an icon-derived sage and cream palette, WhatsApp-inspired chat rows, light and
+dark appearance modes, a floating navigation ribbon, and swipeable in-page
+Updates, Calls, Chats, and Settings tabs.
 
 ---
 
@@ -134,12 +145,34 @@ The project uses a single Flutter codebase for Android, iOS, and web-based devel
 - [x] Updated automated widget test
 - [x] Static analysis and test verification
 
+### Day 3 Deliverables
+
+- [x] Reliable presence heartbeat and stale-online detection
+- [x] Live last-seen information in conversation and chat views
+- [x] Supabase Realtime publication migration for profiles
+- [x] Custom ConnectUs application icon
+- [x] Android launcher icons
+- [x] iPhone, iPad, and macOS application icons
+- [x] Windows application icon
+- [x] Web favicon and PWA icons
+- [x] Icon-derived sage, mint, cream, and charcoal palette
+- [x] Branded splash and onboarding experience
+- [x] WhatsApp-inspired conversations homepage
+- [x] Conversation search and filter pills
+- [x] Floating translucent navigation ribbon
+- [x] Updates, Calls, Chats, and Settings tabs
+- [x] Animated tab changes and horizontal swipe navigation
+- [x] Application-wide light and dark appearance modes
+- [x] Light appearance as the default
+- [x] Theme controls in the homepage menu and Settings
+- [ ] Functional status updates
+- [ ] Voice and video calling
+
 ### Upcoming Work
 
 - [ ] Optimistic message sending
 - [ ] Message retry handling
 - [ ] Better loading placeholders
-- [ ] Dark appearance mode
 - [ ] Additional animations and motion polish
 
 ### Future Work
@@ -231,6 +264,9 @@ Authenticated users can:
 
 The authenticated homepage displays:
 
+- A large WhatsApp-inspired Chats header
+- Circular menu, camera, and new-chat actions
+- All, Unread, and Favorites filters
 - Existing one-to-one conversations
 - The other user’s display name
 - User avatars or generated initials
@@ -239,6 +275,9 @@ The authenticated homepage displays:
 - Latest-message times
 - Search and new-chat navigation
 - Account and logout controls
+- A floating translucent navigation ribbon
+- Swipeable Updates, Calls, Chats, and Settings tabs
+- Light and dark appearance modes
 - Empty, loading, and error states
 - Pull-to-refresh support
 
@@ -800,7 +839,7 @@ nothing to commit, working tree clean
 - [ ] Message-entry animations
 - [ ] Loading skeletons
 - [ ] Haptic feedback
-- [ ] Dark mode
+- [x] Dark mode
 - [ ] Accessibility improvements
 - [ ] Mobile layout testing
 
@@ -855,6 +894,26 @@ Day 2 completed the first messaging-quality milestone:
 3. Opening a chat updates the member’s last-read message through a secured RPC.
 4. Incoming messages continue updating read-receipt rows.
 5. Typing feedback is delivered through Realtime broadcasts.
+
+---
+
+## Day 3 Milestone
+
+```text
+Day 3 In Progress — ConnectUs Branding, Mobile Navigation,
+Presence Improvements, and Light/Dark Appearance
+```
+
+Current Day 3 results:
+
+1. ConnectUs uses a consistent custom icon across mobile, desktop, and web.
+2. The interface uses an icon-derived sage, mint, cream, and charcoal palette.
+3. Presence uses a heartbeat and stale-online protection.
+4. Last-seen information updates in conversation lists and chat headers.
+5. The homepage follows a WhatsApp-inspired Chats layout.
+6. A floating ribbon provides Updates, Calls, Chats, and Settings tabs.
+7. Tabs open inside the homepage with animated slides and swipe gestures.
+8. Light appearance is the default, with app-wide dark-mode support.
 6. Online state and last-seen timestamps are maintained from app lifecycle events.
 7. Conversations can be filtered by name, username, or latest message.
 8. Chat history includes date separators and grouped consecutive messages.
