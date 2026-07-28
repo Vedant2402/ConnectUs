@@ -6,7 +6,7 @@
 
 <p align="center">
   ConnectUs is being developed as a polished, secure, and cross-platform
-  one-to-one chat application for Android and iOS.
+  one-to-one messaging application for Android and iOS.
 </p>
 
 <p align="center">
@@ -20,31 +20,53 @@
     <img src="https://img.shields.io/badge/Backend-Supabase-3ECF8E?logo=supabase" alt="Supabase">
   </a>
   <a href="https://github.com/Vedant2402/ConnectUs">
-    <img src="https://img.shields.io/badge/Status-In%20Development-orange" alt="Project status">
+    <img src="https://img.shields.io/badge/Day%201-Complete-brightgreen" alt="Day 1 complete">
+  </a>
+  <a href="https://github.com/Vedant2402/ConnectUs">
+    <img src="https://img.shields.io/badge/Day%202-In%20Progress-orange" alt="Day 2 in progress">
   </a>
 </p>
 
 ---
 
+## Development Status
+
+### Day 1 — Complete
+
+Day 1 established the core foundation of ConnectUs.
+
+The application now supports authentication, user profiles, unique usernames, user discovery, one-to-one conversation creation, real-time messaging, message receipts, and conversation history.
+
+### Day 2 — In Progress
+
+Day 2 focuses on improving the quality of the messaging experience.
+
+Planned work includes unread-message tracking, typing indicators, real-time presence, message grouping, conversation updates, profile improvements, and additional interface polish.
+
+---
+
 ## Overview
 
-ConnectUs is a cross-platform real-time messaging application inspired by the simplicity of modern messaging platforms.
+ConnectUs is a cross-platform real-time messaging application inspired by the simplicity and usability of modern communication platforms.
 
-The first development phase focuses on creating a stable messaging foundation where users can:
+The first development phase focuses on creating a secure and stable messaging foundation where users can:
 
 - Register using email and password
 - Verify their email address
 - Log in securely
-- Create a unique username
+- Create a public profile
+- Select a unique username
 - Search for people by username
-- Start one-to-one conversations
+- View another user’s profile
+- Start private one-to-one conversations
+- Reopen existing conversations
 - Send and receive messages in real time
-- View typing indicators and message-read states
-- Receive push notifications
-- Use a polished interface with smooth animations
-- Use light and dark appearance modes
+- View message timestamps
+- View delivered and read states
+- Access conversation history from the homepage
+- Use a polished interface with lightweight animations
 
-The project uses a single Flutter codebase for Android and iOS.
+The project uses a single Flutter codebase for Android, iOS, and web-based development testing.
 
 > ConnectUs is currently under active development and is not yet ready for production use.
 
@@ -52,7 +74,7 @@ The project uses a single Flutter codebase for Android and iOS.
 
 ## Current Progress
 
-The following functionality is currently implemented:
+### Day 1 Deliverables
 
 - [x] Flutter project setup
 - [x] Git and GitHub repository setup
@@ -68,28 +90,104 @@ The following functionality is currently implemented:
 - [x] Secure local environment configuration
 - [x] Animated login-success popup
 - [x] Liquid Glass UI package initialization
-- [x] Initial automated widget test
+- [x] Automatic profile-row creation
+- [x] User profile setup
+- [x] Unique username selection
+- [x] Username normalization
+- [x] Username uniqueness enforcement
+- [x] Username-based user search
+- [x] User profile preview
+- [x] One-to-one conversation creation
+- [x] Existing conversation reuse
+- [x] Real-time text messaging
+- [x] Chronological message ordering
+- [x] Message persistence
+- [x] Message timestamps
+- [x] Delivered and read receipts
+- [x] Conversation list
+- [x] Latest-message preview
+- [x] Latest-message time
+- [x] Conversation reopening
+- [x] Pull-to-refresh conversation list
+- [x] Logout support
+- [x] Supabase Row Level Security
 - [x] Flutter static-analysis checks
-- [ ] User profile creation
-- [ ] Unique username selection
-- [ ] Username search
-- [ ] Conversation creation
-- [ ] Real-time text messaging
-- [ ] Read receipts
+- [x] Initial automated widget test
+
+### Day 2 Work
+
+- [ ] Real-time homepage conversation updates
+- [ ] Unread-message counters
+- [ ] Last-read message tracking
 - [ ] Typing indicators
-- [ ] Online presence
+- [ ] Real-time online presence
+- [ ] Last-seen information
+- [ ] Conversation search
+- [ ] Date separators inside chats
+- [ ] Consecutive-message grouping
+- [ ] Improved automatic scrolling
+- [ ] Optimistic message sending
+- [ ] Message retry handling
+- [ ] Better loading placeholders
+- [ ] Profile editing
+- [ ] Settings screen
+- [ ] Dark appearance mode
+- [ ] Additional animations and motion polish
+
+### Future Work
+
+- [ ] Password reset
 - [ ] Push notifications
-- [ ] Android and iOS production builds
+- [ ] Message pagination
+- [ ] Local message caching
+- [ ] Profile photographs
+- [ ] Android production build
+- [ ] iOS production build
+- [ ] Integration testing
+- [ ] GitHub Actions
+
+---
+
+## Implemented Application Flow
+
+```text
+Welcome Screen
+      |
+      v
+Register or Login
+      |
+      v
+Email Verification
+      |
+      v
+Profile and Username Setup
+      |
+      v
+Conversations Home
+      |
+      v
+Search Users by Username
+      |
+      v
+Open User Profile
+      |
+      v
+Create or Reuse Conversation
+      |
+      v
+Real-Time Chat Screen
+      |
+      v
+Conversation Appears on Home Screen
+```
 
 ---
 
 ## Screens
 
-The application currently includes:
-
 ### Welcome Screen
 
-The first screen introduces ConnectUs and provides navigation to registration and login.
+The welcome screen introduces ConnectUs and provides navigation to registration and login.
 
 ### Registration Screen
 
@@ -105,20 +203,71 @@ Users can:
 
 Verified users can:
 
-- Enter their email and password
+- Enter their email address and password
 - Show or hide their password
 - Log in through Supabase Authentication
 - View an animated Liquid Glass success popup
+- Continue to profile setup when no username exists
+- Continue to the conversation home when setup is complete
+
+### Profile Setup Screen
+
+Authenticated users can:
+
+- Choose a unique username
+- Enter a display name
+- Create their ConnectUs identity
+- Continue to the application after profile completion
 
 ### Conversations Home
 
-The initial authenticated home screen is being prepared to contain:
+The authenticated homepage displays:
 
-- Conversation history
-- Username search
-- New-chat creation
-- Profile and account controls
-- Logout functionality
+- Existing one-to-one conversations
+- The other user’s display name
+- User avatars or generated initials
+- Online-status indicators
+- Latest-message previews
+- Latest-message times
+- Search and new-chat navigation
+- Account and logout controls
+- Empty, loading, and error states
+- Pull-to-refresh support
+
+### User Search
+
+Users can:
+
+- Search using normalized usernames
+- View case-insensitive prefix results
+- Open another user’s profile
+- Exclude their own account from search results
+
+### User Profile Preview
+
+The profile-preview screen displays:
+
+- Display name
+- Username
+- Biography when available
+- Avatar or generated initial
+- Online indicator
+- Message button
+
+### Real-Time Chat
+
+The chat screen currently supports:
+
+- Existing-message loading
+- Real-time incoming messages
+- Text-message sending
+- Correct chronological ordering
+- Message timestamps
+- Sent, delivered, and read indicators
+- Automatic scrolling
+- Empty-chat state
+- Error state
+- Reopening existing conversations
 
 ---
 
@@ -126,17 +275,18 @@ The initial authenticated home screen is being prepared to contain:
 
 | Layer | Technology | Purpose |
 |---|---|---|
-| Mobile framework | Flutter | Cross-platform Android and iOS development |
+| Cross-platform framework | Flutter | Android, iOS, and web development |
 | Language | Dart | Application development |
 | Authentication | Supabase Auth | Registration, verification, login, and sessions |
-| Backend | Supabase | Authentication, database, storage, and real-time services |
-| Database | PostgreSQL | Users, profiles, conversations, and messages |
-| Real-time communication | Supabase Realtime | Instant message and presence updates |
+| Backend | Supabase | Authentication, database, and real-time services |
+| Database | PostgreSQL | Profiles, conversations, members, messages, and receipts |
+| Real-time communication | Supabase Realtime | Instant message and receipt updates |
+| Security | Supabase Row Level Security | Database-level access control |
 | UI design | Material 3 | Base application design system |
-| Glass effects | liquid_glass_widgets | Shader-based Liquid Glass components and motion |
+| Glass effects | liquid_glass_widgets | Liquid Glass components and motion |
 | Configuration | flutter_dotenv | Local environment-variable loading |
 | Testing | flutter_test | Flutter widget and unit testing |
-| Source control | Git and GitHub | Version control and collaboration |
+| Source control | Git and GitHub | Version control and project history |
 
 ---
 
@@ -152,18 +302,36 @@ ConnectUs/
     ├── lib/
     │   ├── app/
     │   │   └── connect_us_app.dart
+    │   │
     │   ├── core/
     │   │   └── widgets/
+    │   │       └── login_success_popup.dart
+    │   │
     │   ├── features/
     │   │   ├── authentication/
     │   │   │   └── presentation/
     │   │   │       ├── login_screen.dart
     │   │   │       ├── register_screen.dart
     │   │   │       └── welcome_screen.dart
-    │   │   └── conversations/
+    │   │   │
+    │   │   ├── profile/
+    │   │   │   └── presentation/
+    │   │   │       └── username_setup_screen.dart
+    │   │   │
+    │   │   ├── user_search/
+    │   │   │   └── presentation/
+    │   │   │       └── user_search_screen.dart
+    │   │   │
+    │   │   ├── conversations/
+    │   │   │   └── presentation/
+    │   │   │       └── home_screen.dart
+    │   │   │
+    │   │   └── chat/
     │   │       └── presentation/
-    │   │           └── home_screen.dart
+    │   │           └── chat_screen.dart
+    │   │
     │   └── main.dart
+    │
     ├── test/
     ├── web/
     ├── .env.example
@@ -171,6 +339,165 @@ ConnectUs/
     ├── pubspec.yaml
     └── pubspec.lock
 ```
+
+---
+
+## Database Architecture
+
+ConnectUs currently uses five main public tables.
+
+### `profiles`
+
+Stores public profile information connected to Supabase Authentication users.
+
+Important fields:
+
+- `id`
+- `username`
+- `username_normalized`
+- `display_name`
+- `bio`
+- `avatar_url`
+- `is_online`
+- `last_seen_at`
+- `created_at`
+- `updated_at`
+
+### `conversations`
+
+Stores conversation metadata.
+
+Important fields:
+
+- `id`
+- `type`
+- `created_at`
+- `updated_at`
+
+The current implementation supports direct one-to-one conversations.
+
+### `conversation_members`
+
+Connects authenticated users to conversations.
+
+Important fields:
+
+- `conversation_id`
+- `user_id`
+- `joined_at`
+- `last_read_message_id`
+- `is_muted`
+
+### `messages`
+
+Stores messages sent inside conversations.
+
+Important fields:
+
+- `id`
+- `conversation_id`
+- `sender_id`
+- `content`
+- `message_type`
+- `reply_to_message_id`
+- `created_at`
+- `edited_at`
+- `deleted_at`
+
+### `message_receipts`
+
+Stores message delivery and read information for recipients.
+
+Important fields:
+
+- `message_id`
+- `user_id`
+- `delivered_at`
+- `read_at`
+
+---
+
+## Database Functions and Triggers
+
+### `handle_new_user`
+
+Automatically creates a corresponding profile row when a new Supabase Authentication user registers.
+
+### `set_profile_normalized_username`
+
+Trims usernames, generates their normalized lowercase values, and updates profile timestamps.
+
+### `create_or_get_direct_conversation`
+
+Creates a one-to-one conversation between two users or returns the existing conversation when one already exists.
+
+This prevents duplicate direct conversations between the same two users.
+
+### `is_conversation_member`
+
+Checks whether the authenticated user belongs to a requested conversation.
+
+This helper is used by Row Level Security policies to avoid recursive membership-policy checks.
+
+### `update_conversation_timestamp`
+
+Updates a conversation’s `updated_at` value after a new message is inserted.
+
+---
+
+## Real-Time Architecture
+
+Supabase Realtime is enabled for:
+
+- `messages`
+- `message_receipts`
+
+The chat screen listens to the `messages` table using the active conversation ID.
+
+When a recipient opens the conversation, the application creates or updates message-receipt rows. The sender’s chat screen listens for those receipt changes and updates the message indicator.
+
+Current message-state behavior:
+
+```text
+One check       = Message sent
+Two checks      = Message delivered or receipt created
+Two blue checks = Message read
+```
+
+---
+
+## Security
+
+ConnectUs uses Supabase Row Level Security to protect application data.
+
+Current security rules ensure that:
+
+- Users can update only their own profiles.
+- Authenticated users can view searchable user profiles.
+- Users can view only conversations they belong to.
+- Users can view conversation memberships only for their conversations.
+- Users can view only messages inside their conversations.
+- Users can send messages only inside their conversations.
+- Message senders can update only their own messages.
+- Users can create and update only their own receipt records.
+- Direct conversations are created through a controlled database function.
+
+Sensitive credentials must never be committed.
+
+Never commit:
+
+```text
+.env
+Database passwords
+Supabase secret keys
+Supabase service-role keys
+Signing certificates
+Private Firebase credentials
+```
+
+The `.env` file is ignored by Git.
+
+The public `.env.example` file documents the required configuration without containing real credentials.
 
 ---
 
@@ -188,7 +515,7 @@ Install the following tools:
 - Android Studio for Android development
 - Xcode and CocoaPods for iOS development on macOS
 
-Check your Flutter installation:
+Check Flutter:
 
 ```bash
 flutter --version
@@ -208,7 +535,7 @@ flutter doctor
 git clone https://github.com/Vedant2402/ConnectUs.git
 ```
 
-Open the Flutter application folder:
+Open the Flutter application:
 
 ```bash
 cd ConnectUs/connectus_app
@@ -224,7 +551,7 @@ flutter pub get
 
 ## Supabase Configuration
 
-ConnectUs uses Supabase for authentication and backend services.
+ConnectUs uses Supabase for authentication, PostgreSQL storage, security policies, database functions, and real-time updates.
 
 Create a local `.env` file inside:
 
@@ -232,42 +559,45 @@ Create a local `.env` file inside:
 ConnectUs/connectus_app/.env
 ```
 
-Copy the example file:
+Copy the example configuration:
 
 ```bash
 cp .env.example .env
 ```
 
-Add your Supabase client configuration:
+Add the Supabase project URL and publishable client key:
 
 ```env
 SUPABASE_URL=https://your-project-id.supabase.co
 SUPABASE_PUBLISHABLE_KEY=your-publishable-key
 ```
 
-The `.env` file is ignored by Git and must not be committed.
+The Flutter application should use only:
 
-### Never place these values in the Flutter application
+- Supabase project URL
+- Supabase publishable client key
+
+Never place these values inside the Flutter client:
 
 - Database password
-- Direct PostgreSQL connection password
+- Direct PostgreSQL password
 - `service_role` key
 - `sb_secret_...` key
 - Private backend credentials
-
-The Flutter client should use only the Supabase project URL and publishable client key.
 
 ---
 
 ## Run the Application
 
-### Web
+### Web Development
 
 ```bash
 flutter run -d chrome
 ```
 
-Flutter launches its web debug target through Chrome. The generated local URL can also be opened manually in another Chromium-based browser such as Brave.
+Flutter launches its web debug target through Chrome.
+
+The generated local development URL can also be opened manually in another Chromium-based browser such as Brave.
 
 ### List Available Devices
 
@@ -298,6 +628,12 @@ flutter run
 
 ## Code Quality
 
+Format the application:
+
+```bash
+dart format lib test
+```
+
 Run static analysis:
 
 ```bash
@@ -310,15 +646,10 @@ Run automated tests:
 flutter test
 ```
 
-Format the Dart code:
+A stable milestone should pass:
 
 ```bash
 dart format lib test
-```
-
-A stable contribution should pass both:
-
-```bash
 flutter analyze
 flutter test
 ```
@@ -327,22 +658,52 @@ flutter test
 
 ## Git Workflow
 
-After completing a stable change:
+Review all changes:
 
 ```bash
 git status
+```
+
+Before committing, confirm that `.env` is not listed.
+
+Stage changes:
+
+```bash
 git add .
-git commit -m "Describe the completed change"
-git push
 ```
 
-Before committing, always verify that `.env` is not included:
+Create a commit:
+
+```bash
+git commit -m "Describe the completed change"
+```
+
+Integrate remote changes safely:
+
+```bash
+git pull --rebase origin main
+```
+
+Push to GitHub:
+
+```bash
+git push origin main
+```
+
+Verify the final state:
 
 ```bash
 git status
 ```
 
-The public `.env.example` file should be committed, but the real `.env` file must remain local.
+Expected result:
+
+```text
+On branch main
+Your branch is up to date with 'origin/main'.
+
+nothing to commit, working tree clean
+```
 
 ---
 
@@ -350,65 +711,130 @@ The public `.env.example` file should be committed, but the real `.env` file mus
 
 ### Milestone 1 — Foundation
 
-- Flutter project setup
-- Application theme
-- Folder architecture
-- Supabase connection
-- GitHub repository
-- Static analysis and tests
+- [x] Flutter project setup
+- [x] Application theme
+- [x] Folder architecture
+- [x] Supabase connection
+- [x] GitHub repository
+- [x] Static analysis and initial tests
 
 ### Milestone 2 — Accounts
 
-- Email registration
-- Email verification
-- Email login
-- Password reset
-- Secure session restoration
-- Logout
+- [x] Email registration
+- [x] Email verification
+- [x] Email login
+- [x] Secure session support
+- [x] Logout
+- [ ] Password reset
 
 ### Milestone 3 — Identity
 
-- Unique usernames
-- Display names
-- Profile photographs
-- User biographies
-- Username search
+- [x] Unique usernames
+- [x] Display names
+- [x] Automatic profile creation
+- [x] Username search
+- [x] User profile preview
+- [ ] Profile editing
+- [ ] Profile photographs
+- [ ] User biographies through settings
 
 ### Milestone 4 — Core Chat
 
-- One-to-one conversation creation
-- Conversation list
-- Real-time text messaging
-- Message persistence
+- [x] One-to-one conversation creation
+- [x] Existing conversation reuse
+- [x] Conversation list
+- [x] Real-time text messaging
+- [x] Message persistence
+- [x] Latest-message preview
+- [x] Conversation reopening
 
 ### Milestone 5 — Messaging Quality
 
-- Sent, delivered, and read states
-- Typing indicators
-- Unread counts
-- Message pagination
-- Local message caching
-- Retry handling
+- [x] Sent-message state
+- [x] Delivered-message state
+- [x] Read-message state
+- [ ] Typing indicators
+- [ ] Unread counts
+- [ ] Last-read tracking
+- [ ] Message pagination
+- [ ] Local message caching
+- [ ] Retry handling
+- [ ] Optimistic updates
 
-### Milestone 6 — Visual Polish
+### Milestone 6 — Presence and Profiles
 
-- Liquid Glass surfaces
-- Smooth screen transitions
-- Message animations
-- Loading placeholders
-- Haptic feedback
-- Dark mode
-- Accessibility support
+- [ ] Real-time online presence
+- [ ] Last-seen updates
+- [ ] Profile editing
+- [ ] Avatar uploads
+- [ ] Conversation search
+- [ ] Mute controls
 
-### Milestone 7 — Release Preparation
+### Milestone 7 — Visual Polish
 
-- Firebase Cloud Messaging
-- Crash reporting
-- Integration testing
-- Signed Android build
-- iOS TestFlight build
-- Documentation
-- GitHub Actions
+- [x] Liquid Glass surfaces
+- [x] Lightweight screen transitions
+- [x] Empty, loading, and error states
+- [ ] Message-entry animations
+- [ ] Loading skeletons
+- [ ] Haptic feedback
+- [ ] Dark mode
+- [ ] Accessibility improvements
+- [ ] Mobile layout testing
+
+### Milestone 8 — Release Preparation
+
+- [ ] Firebase Cloud Messaging
+- [ ] Crash reporting
+- [ ] Integration testing
+- [ ] Signed Android build
+- [ ] iOS TestFlight build
+- [ ] GitHub Actions
+- [ ] Production documentation
+- [ ] Security review
+
+---
+
+## Day 1 Milestone
+
+```text
+Day 1 Complete — Authentication, Profiles, User Search,
+Conversations, and Real-Time Messaging
+```
+
+Day 1 completed the application’s core communication foundation.
+
+Two users can now:
+
+1. Register using email and password
+2. Verify their email accounts
+3. Log in securely
+4. Choose unique usernames
+5. Find each other through username search
+6. View profile information
+7. Start a private conversation
+8. Exchange messages in real time
+9. View delivered and read indicators
+10. Return to the homepage and reopen the conversation
+
+---
+
+## Day 2 Plan
+
+Day 2 focuses on improving the experience around the working messaging foundation.
+
+Primary Day 2 tasks:
+
+1. Add unread-message counters
+2. Track the last-read message
+3. Add typing indicators
+4. Implement real online and offline presence
+5. Display last-seen information
+6. Update homepage conversations in real time
+7. Add date separators
+8. Group consecutive messages
+9. Improve message scrolling behavior
+10. Improve profile and settings functionality
 
 ---
 
@@ -423,16 +849,18 @@ Phase 1 will be considered complete when two users can:
 5. Start a private conversation
 6. Exchange messages in real time
 7. View delivery and read states
-8. Receive message notifications
-9. Reopen the application without losing their messages
+8. View unread-message counts
+9. View typing and presence information
+10. Receive message notifications
+11. Reopen the application without losing message history
 
-All user data must be protected using Supabase Row Level Security policies.
+All user data must remain protected through Supabase Row Level Security policies.
 
 ---
 
 ## Planned Later Features
 
-The following features are intentionally excluded from the first release:
+The following features are intentionally excluded from the initial messaging release:
 
 - Phone-number authentication
 - Group conversations
@@ -444,7 +872,31 @@ The following features are intentionally excluded from the first release:
 - Emergency commands
 - AI assistant actions
 
-These features will be considered after the one-to-one messaging foundation is stable.
+These capabilities will be considered after the core one-to-one messaging experience is stable.
+
+---
+
+## Future Assistant Phase
+
+A later phase of ConnectUs will introduce an assistant accessible from the homepage.
+
+Planned assistant capabilities include:
+
+- Opening chats through voice commands
+- Finding users
+- Navigating application screens
+- Drafting messages
+- Sending messages after confirmation
+- Performing common in-app actions
+
+Example command:
+
+```text
+Open Mummy's chat and send:
+"Have you had your lunch?"
+```
+
+The assistant phase will begin only after the messaging foundation is stable and secure.
 
 ---
 
@@ -458,30 +910,11 @@ Phase_1_Real_Time_Chat_App_Official_Documentation_Final.pdf
 
 ---
 
-## Security
-
-Please do not publicly report security vulnerabilities through GitHub issues.
-
-Never commit:
-
-```text
-.env
-Database passwords
-Supabase secret keys
-Service-role keys
-Signing certificates
-Private Firebase credentials
-```
-
-A dedicated `SECURITY.md` policy will be added before the first public release.
-
----
-
 ## Contributing
 
-ConnectUs is currently in its initial development phase.
+ConnectUs is currently under active development.
 
-Contribution guidelines, issue templates, coding standards, and pull-request instructions will be added as the project becomes ready for external contributors.
+Contribution guidelines, issue templates, coding standards, and pull-request instructions will be added before the project is opened for external contributions.
 
 ---
 
@@ -495,6 +928,6 @@ GitHub: [@Vedant2402](https://github.com/Vedant2402)
 
 ## License
 
-A project license has not been selected yet.
+A project license has not yet been selected.
 
 Until a license is added, the source code remains publicly viewable but is not automatically licensed for reuse, redistribution, or commercial use.
