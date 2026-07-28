@@ -3,6 +3,7 @@ import 'package:liquid_glass_widgets/liquid_glass_widgets.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../../authentication/presentation/welcome_screen.dart';
+import '../../user_search/presentation/user_search_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -16,6 +17,12 @@ class _HomeScreenState extends State<HomeScreen> {
 
   String get userEmail {
     return Supabase.instance.client.auth.currentUser?.email ?? 'ConnectUs user';
+  }
+
+  void openUserSearch() {
+    Navigator.of(
+      context,
+    ).push(MaterialPageRoute(builder: (context) => const UserSearchScreen()));
   }
 
   Future<void> logout() async {
@@ -69,24 +76,6 @@ class _HomeScreenState extends State<HomeScreen> {
     }
   }
 
-  void showSearchMessage() {
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('Username search will be added next.'),
-        behavior: SnackBarBehavior.floating,
-      ),
-    );
-  }
-
-  void showNewChatMessage() {
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('New chat creation will be added next.'),
-        behavior: SnackBarBehavior.floating,
-      ),
-    );
-  }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -133,7 +122,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   ),
                   IconButton(
                     tooltip: 'Search users',
-                    onPressed: showSearchMessage,
+                    onPressed: openUserSearch,
                     icon: const Icon(Icons.search_rounded, size: 27),
                   ),
                   PopupMenuButton<String>(
@@ -222,8 +211,9 @@ class _HomeScreenState extends State<HomeScreen> {
                           ),
                           const SizedBox(height: 10),
                           Text(
-                            'Search for someone by their username '
-                            'and start your first conversation.',
+                            'Search for someone by their '
+                            'username and start your first '
+                            'conversation.',
                             textAlign: TextAlign.center,
                             style: TextStyle(
                               fontSize: 15,
@@ -236,7 +226,7 @@ class _HomeScreenState extends State<HomeScreen> {
                             width: double.infinity,
                             height: 54,
                             child: FilledButton.icon(
-                              onPressed: showNewChatMessage,
+                              onPressed: openUserSearch,
                               style: FilledButton.styleFrom(
                                 backgroundColor: const Color(0xFF5B5FEF),
                                 shape: RoundedRectangleBorder(
@@ -284,7 +274,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     icon: Icons.people_outline_rounded,
                     label: 'People',
                     selected: false,
-                    onTap: showSearchMessage,
+                    onTap: openUserSearch,
                   ),
                 ),
                 Expanded(
