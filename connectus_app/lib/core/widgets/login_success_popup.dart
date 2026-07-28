@@ -138,14 +138,14 @@ class _LoginSuccessPopupState extends State<LoginSuccessPopup>
                           height: 78,
                           decoration: BoxDecoration(
                             color: const Color(
-                              0xFF34C759,
+                              0xFF5FAF7B,
                             ).withValues(alpha: 0.15),
                             shape: BoxShape.circle,
                           ),
                           child: const Icon(
                             Icons.check_rounded,
                             size: 46,
-                            color: Color(0xFF34C759),
+                            color: Color(0xFF5FAF7B),
                           ),
                         ),
                       ),

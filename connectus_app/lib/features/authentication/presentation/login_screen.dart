@@ -242,7 +242,7 @@ class _LoginScreenState extends State<LoginScreen> {
                   child: FilledButton(
                     onPressed: isLoading ? null : login,
                     style: FilledButton.styleFrom(
-                      backgroundColor: const Color(0xFF5B5FEF),
+                      backgroundColor: const Color(0xFF6F927E),
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(18),
                       ),

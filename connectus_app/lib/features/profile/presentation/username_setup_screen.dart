@@ -140,7 +140,7 @@ class _UsernameSetupScreenState extends State<UsernameSetupScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFF3F1FF),
+      backgroundColor: const Color(0xFFF8F3E7),
       body: SafeArea(
         child: Center(
           child: SingleChildScrollView(
@@ -156,7 +156,7 @@ class _UsernameSetupScreenState extends State<UsernameSetupScreen> {
                       width: 74,
                       height: 74,
                       decoration: BoxDecoration(
-                        color: const Color(0xFF5B5FEF),
+                        color: const Color(0xFF6F927E),
                         borderRadius: BorderRadius.circular(24),
                       ),
                       child: const Icon(
@@ -225,7 +225,7 @@ class _UsernameSetupScreenState extends State<UsernameSetupScreen> {
                       child: FilledButton(
                         onPressed: isSaving ? null : saveProfile,
                         style: FilledButton.styleFrom(
-                          backgroundColor: const Color(0xFF5B5FEF),
+                          backgroundColor: const Color(0xFF6F927E),
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(18),
                           ),

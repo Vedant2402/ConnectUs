@@ -137,7 +137,7 @@ class _UserSearchScreenState extends State<UserSearchScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFF3F1FF),
+      backgroundColor: const Color(0xFFF8F3E7),
       appBar: AppBar(
         title: const Text('Find people'),
         backgroundColor: Colors.transparent,
@@ -231,7 +231,7 @@ class _UserSearchScreenState extends State<UserSearchScreen> {
                 const Icon(
                   Icons.person_search_rounded,
                   size: 54,
-                  color: Color(0xFF5B5FEF),
+                  color: Color(0xFF6F927E),
                 ),
                 const SizedBox(height: 18),
                 const Text(
@@ -265,7 +265,7 @@ class _UserSearchScreenState extends State<UserSearchScreen> {
                 const Icon(
                   Icons.search_off_rounded,
                   size: 50,
-                  color: Color(0xFF5B5FEF),
+                  color: Color(0xFF6F927E),
                 ),
                 const SizedBox(height: 18),
                 const Text(
@@ -311,7 +311,7 @@ class _UserSearchScreenState extends State<UserSearchScreen> {
                 children: [
                   CircleAvatar(
                     radius: 27,
-                    backgroundColor: const Color(0xFFE3E1FF),
+                    backgroundColor: const Color(0xFFDDEEE3),
                     backgroundImage:
                         avatarUrl != null && avatarUrl.trim().isNotEmpty
                         ? NetworkImage(avatarUrl)
@@ -322,7 +322,7 @@ class _UserSearchScreenState extends State<UserSearchScreen> {
                             style: const TextStyle(
                               fontSize: 20,
                               fontWeight: FontWeight.w700,
-                              color: Color(0xFF5B5FEF),
+                              color: Color(0xFF6F927E),
                             ),
                           )
                         : null,
@@ -357,7 +357,7 @@ class _UserSearchScreenState extends State<UserSearchScreen> {
                       height: 10,
                       margin: const EdgeInsets.only(right: 12),
                       decoration: const BoxDecoration(
-                        color: Color(0xFF34C759),
+                        color: Color(0xFF5FAF7B),
                         shape: BoxShape.circle,
                       ),
                     ),
@@ -504,7 +504,7 @@ class _UserPreviewScreenState extends State<UserPreviewScreen> {
     final isOnline = widget.user['is_online'] as bool? ?? false;
 
     return Scaffold(
-      backgroundColor: const Color(0xFFF3F1FF),
+      backgroundColor: const Color(0xFFF8F3E7),
       appBar: AppBar(
         title: const Text('Profile'),
         backgroundColor: Colors.transparent,
@@ -529,7 +529,7 @@ class _UserPreviewScreenState extends State<UserPreviewScreen> {
                       children: [
                         CircleAvatar(
                           radius: 48,
-                          backgroundColor: const Color(0xFFE3E1FF),
+                          backgroundColor: const Color(0xFFDDEEE3),
                           backgroundImage:
                               avatarUrl != null && avatarUrl.trim().isNotEmpty
                               ? NetworkImage(avatarUrl)
@@ -540,7 +540,7 @@ class _UserPreviewScreenState extends State<UserPreviewScreen> {
                                   style: const TextStyle(
                                     fontSize: 34,
                                     fontWeight: FontWeight.w800,
-                                    color: Color(0xFF5B5FEF),
+                                    color: Color(0xFF6F927E),
                                   ),
                                 )
                               : null,
@@ -553,10 +553,10 @@ class _UserPreviewScreenState extends State<UserPreviewScreen> {
                               width: 17,
                               height: 17,
                               decoration: BoxDecoration(
-                                color: const Color(0xFF34C759),
+                                color: const Color(0xFF5FAF7B),
                                 shape: BoxShape.circle,
                                 border: Border.all(
-                                  color: const Color(0xFFF3F1FF),
+                                  color: const Color(0xFFF8F3E7),
                                   width: 3,
                                 ),
                               ),
@@ -586,7 +586,7 @@ class _UserPreviewScreenState extends State<UserPreviewScreen> {
                       isOnline ? 'Online' : 'ConnectUs user',
                       style: TextStyle(
                         color: isOnline
-                            ? const Color(0xFF2A9D55)
+                            ? const Color(0xFF4B8F68)
                             : Colors.grey.shade600,
                         fontWeight: FontWeight.w600,
                       ),

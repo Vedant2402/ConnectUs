@@ -43,9 +43,9 @@ class _StartupScreenState extends State<StartupScreen> {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) return;
 
-      Navigator.of(context).pushReplacement(
-        MaterialPageRoute(builder: (_) => destination),
-      );
+      Navigator.of(
+        context,
+      ).pushReplacement(MaterialPageRoute(builder: (_) => destination));
     });
   }
 
@@ -76,7 +76,7 @@ class _StartupScreenState extends State<StartupScreen> {
   @override
   Widget build(BuildContext context) {
     return const Scaffold(
-      backgroundColor: Color(0xFFF3F1FF),
+      backgroundColor: Color(0xFFF8F3E7),
       body: Center(child: CircularProgressIndicator()),
     );
   }

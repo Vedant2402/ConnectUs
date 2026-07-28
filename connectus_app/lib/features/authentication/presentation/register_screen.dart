@@ -237,7 +237,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   child: FilledButton(
                     onPressed: isLoading ? null : createAccount,
                     style: FilledButton.styleFrom(
-                      backgroundColor: const Color(0xFF5B5FEF),
+                      backgroundColor: const Color(0xFF6F927E),
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(18),
                       ),

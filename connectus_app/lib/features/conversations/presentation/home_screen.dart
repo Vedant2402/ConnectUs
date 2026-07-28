@@ -557,7 +557,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFF3F1FF),
+      backgroundColor: const Color(0xFFF8F3E7),
       body: SafeArea(
         child: Column(
           children: [
@@ -678,8 +678,8 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
             },
             icon: const CircleAvatar(
               radius: 18,
-              backgroundColor: Color(0xFFE3E1FF),
-              child: Icon(Icons.person_rounded, color: Color(0xFF5B5FEF)),
+              backgroundColor: Color(0xFFDDEEE3),
+              child: Icon(Icons.person_rounded, color: Color(0xFF6F927E)),
             ),
           ),
         ],
@@ -756,13 +756,13 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                       width: 92,
                       height: 92,
                       decoration: BoxDecoration(
-                        color: const Color(0xFF5B5FEF).withValues(alpha: 0.12),
+                        color: const Color(0xFF6F927E).withValues(alpha: 0.12),
                         shape: BoxShape.circle,
                       ),
                       child: const Icon(
                         Icons.forum_outlined,
                         size: 44,
-                        color: Color(0xFF5B5FEF),
+                        color: Color(0xFF6F927E),
                       ),
                     ),
                     const SizedBox(height: 24),
@@ -793,7 +793,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                       child: FilledButton.icon(
                         onPressed: openUserSearch,
                         style: FilledButton.styleFrom(
-                          backgroundColor: const Color(0xFF5B5FEF),
+                          backgroundColor: const Color(0xFF6F927E),
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(18),
                           ),
@@ -836,7 +836,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
         physics: const AlwaysScrollableScrollPhysics(),
         children: const [
           SizedBox(height: 120),
-          Icon(Icons.search_off_rounded, size: 48, color: Color(0xFF5B5FEF)),
+          Icon(Icons.search_off_rounded, size: 48, color: Color(0xFF6F927E)),
           SizedBox(height: 12),
           Center(child: Text('No matching conversations')),
         ],
@@ -901,7 +901,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                 children: [
                   CircleAvatar(
                     radius: 29,
-                    backgroundColor: const Color(0xFFE3E1FF),
+                    backgroundColor: const Color(0xFFDDEEE3),
                     backgroundImage:
                         avatarUrl != null && avatarUrl.trim().isNotEmpty
                         ? NetworkImage(avatarUrl)
@@ -912,7 +912,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                             style: const TextStyle(
                               fontSize: 21,
                               fontWeight: FontWeight.w800,
-                              color: Color(0xFF5B5FEF),
+                              color: Color(0xFF6F927E),
                             ),
                           )
                         : null,
@@ -925,10 +925,10 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                         width: 14,
                         height: 14,
                         decoration: BoxDecoration(
-                          color: const Color(0xFF34C759),
+                          color: const Color(0xFF5FAF7B),
                           shape: BoxShape.circle,
                           border: Border.all(
-                            color: const Color(0xFFF3F1FF),
+                            color: const Color(0xFFF8F3E7),
                             width: 2.5,
                           ),
                         ),
@@ -959,7 +959,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                         fontSize: 11.5,
                         fontWeight: FontWeight.w600,
                         color: showAsOnline
-                            ? const Color(0xFF2A9D55)
+                            ? const Color(0xFF4B8F68)
                             : Colors.grey.shade600,
                       ),
                     ),
@@ -999,7 +999,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                         vertical: 3,
                       ),
                       decoration: const BoxDecoration(
-                        color: Color(0xFF5B5FEF),
+                        color: Color(0xFF6F927E),
                         shape: BoxShape.circle,
                       ),
                       alignment: Alignment.center,
@@ -1108,7 +1108,7 @@ class _NavigationItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final color = selected ? const Color(0xFF5B5FEF) : Colors.grey.shade600;
+    final color = selected ? const Color(0xFF6F927E) : Colors.grey.shade600;
 
     return InkWell(
       onTap: onTap,
@@ -1124,7 +1124,7 @@ class _NavigationItem extends StatelessWidget {
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 7),
               decoration: BoxDecoration(
                 color: selected
-                    ? const Color(0xFF5B5FEF).withValues(alpha: 0.12)
+                    ? const Color(0xFF6F927E).withValues(alpha: 0.12)
                     : Colors.transparent,
                 borderRadius: BorderRadius.circular(16),
               ),

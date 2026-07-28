@@ -407,7 +407,7 @@ class _ChatScreenState extends State<ChatScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFF3F1FF),
+      backgroundColor: const Color(0xFFF8F3E7),
       appBar: AppBar(
         elevation: 0,
         backgroundColor: Colors.transparent,
@@ -435,7 +435,7 @@ class _ChatScreenState extends State<ChatScreen> {
                   children: [
                     CircleAvatar(
                       radius: 20,
-                      backgroundColor: const Color(0xFFE3E1FF),
+                      backgroundColor: const Color(0xFFDDEEE3),
                       backgroundImage:
                           widget.avatarUrl != null &&
                               widget.avatarUrl!.trim().isNotEmpty
@@ -447,7 +447,7 @@ class _ChatScreenState extends State<ChatScreen> {
                           ? Text(
                               getAvatarLetter(),
                               style: const TextStyle(
-                                color: Color(0xFF5B5FEF),
+                                color: Color(0xFF6F927E),
                                 fontWeight: FontWeight.w800,
                               ),
                             )
@@ -461,10 +461,10 @@ class _ChatScreenState extends State<ChatScreen> {
                           width: 12,
                           height: 12,
                           decoration: BoxDecoration(
-                            color: const Color(0xFF34C759),
+                            color: const Color(0xFF5FAF7B),
                             shape: BoxShape.circle,
                             border: Border.all(
-                              color: const Color(0xFFF3F1FF),
+                              color: const Color(0xFFF8F3E7),
                               width: 2,
                             ),
                           ),
@@ -493,7 +493,7 @@ class _ChatScreenState extends State<ChatScreen> {
                         style: TextStyle(
                           fontSize: 12,
                           color: showAsOnline
-                              ? const Color(0xFF2A9D55)
+                              ? const Color(0xFF4B8F68)
                               : Colors.grey.shade600,
                         ),
                       ),
@@ -740,13 +740,13 @@ class _EmptyChatState extends StatelessWidget {
                   width: 78,
                   height: 78,
                   decoration: const BoxDecoration(
-                    color: Color(0xFFE3E1FF),
+                    color: Color(0xFFDDEEE3),
                     shape: BoxShape.circle,
                   ),
                   child: const Icon(
                     Icons.waving_hand_rounded,
                     size: 36,
-                    color: Color(0xFF5B5FEF),
+                    color: Color(0xFF6F927E),
                   ),
                 ),
                 const SizedBox(height: 20),
@@ -840,7 +840,7 @@ class _MessageBubble extends StatelessWidget {
         padding: const EdgeInsets.fromLTRB(15, 11, 11, 7),
         decoration: BoxDecoration(
           color: isMine
-              ? const Color(0xFF5B5FEF)
+              ? const Color(0xFF6F927E)
               : Colors.white.withValues(alpha: 0.90),
           borderRadius: BorderRadius.only(
             topLeft: const Radius.circular(20),
@@ -891,7 +891,7 @@ class _MessageBubble extends StatelessWidget {
                         : Icons.done_rounded,
                     size: 15,
                     color: isRead
-                        ? const Color(0xFF8FDBFF)
+                        ? const Color(0xFFA9D9C0)
                         : Colors.white.withValues(alpha: 0.78),
                   ),
                 ],
@@ -920,7 +920,7 @@ class _MessageComposer extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.fromLTRB(12, 8, 12, 12),
       decoration: BoxDecoration(
-        color: const Color(0xFFF3F1FF).withValues(alpha: 0.96),
+        color: const Color(0xFFF8F3E7).withValues(alpha: 0.96),
         boxShadow: [
           BoxShadow(
             color: Colors.black.withValues(alpha: 0.05),
@@ -944,7 +944,7 @@ class _MessageComposer extends StatelessWidget {
             },
             icon: const Icon(
               Icons.add_circle_outline_rounded,
-              color: Color(0xFF5B5FEF),
+              color: Color(0xFF6F927E),
             ),
           ),
           Expanded(
@@ -974,7 +974,7 @@ class _MessageComposer extends StatelessWidget {
                 focusedBorder: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(24),
                   borderSide: const BorderSide(
-                    color: Color(0xFF5B5FEF),
+                    color: Color(0xFF6F927E),
                     width: 1.4,
                   ),
                 ),
@@ -989,10 +989,10 @@ class _MessageComposer extends StatelessWidget {
               tooltip: 'Send message',
               onPressed: isSending ? null : onSend,
               style: IconButton.styleFrom(
-                backgroundColor: const Color(0xFF5B5FEF),
+                backgroundColor: const Color(0xFF6F927E),
                 foregroundColor: Colors.white,
                 disabledBackgroundColor: const Color(
-                  0xFF5B5FEF,
+                  0xFF6F927E,
                 ).withValues(alpha: 0.55),
               ),
               icon: isSending
