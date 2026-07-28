@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
@@ -13,10 +15,34 @@ class StartupScreen extends StatefulWidget {
 }
 
 class _StartupScreenState extends State<StartupScreen> {
+  Timer? fallbackTimer;
+  bool hasNavigated = false;
+
   @override
   void initState() {
     super.initState();
+    fallbackTimer = Timer(
+      const Duration(seconds: 5),
+      () => openScreen(const WelcomeScreen()),
+    );
     restoreSession();
+  }
+
+  @override
+  void dispose() {
+    fallbackTimer?.cancel();
+    super.dispose();
+  }
+
+  void openScreen(Widget destination) {
+    if (!mounted || hasNavigated) return;
+
+    hasNavigated = true;
+    fallbackTimer?.cancel();
+
+    Navigator.of(context).pushReplacement(
+      MaterialPageRoute(builder: (_) => destination),
+    );
   }
 
   Future<void> restoreSession() async {
@@ -29,7 +55,8 @@ class _StartupScreenState extends State<StartupScreen> {
             .from('profiles')
             .select('username')
             .eq('id', user.id)
-            .single();
+            .single()
+            .timeout(const Duration(seconds: 4));
         final username = profile['username']?.toString().trim() ?? '';
         destination = username.isEmpty
             ? const UsernameSetupScreen()
@@ -39,10 +66,7 @@ class _StartupScreenState extends State<StartupScreen> {
       }
     }
 
-    if (!mounted) return;
-    Navigator.of(
-      context,
-    ).pushReplacement(MaterialPageRoute(builder: (_) => destination));
+    openScreen(destination);
   }
 
   @override
