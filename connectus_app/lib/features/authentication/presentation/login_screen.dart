@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
-import '../../conversations/presentation/home_screen.dart';
 import '../../../core/widgets/login_success_popup.dart';
+import '../../conversations/presentation/home_screen.dart';
+import '../../profile/presentation/username_setup_screen.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -53,6 +54,18 @@ class _LoginScreenState extends State<LoginScreen> {
     return null;
   }
 
+  Future<bool> userHasUsername(String userId) async {
+    final profile = await Supabase.instance.client
+        .from('profiles')
+        .select('username')
+        .eq('id', userId)
+        .single();
+
+    final username = profile['username'] as String?;
+
+    return username != null && username.trim().isNotEmpty;
+  }
+
   Future<void> login() async {
     FocusScope.of(context).unfocus();
 
@@ -67,8 +80,7 @@ class _LoginScreenState extends State<LoginScreen> {
     });
 
     try {
-      final response =
-          await Supabase.instance.client.auth.signInWithPassword(
+      final response = await Supabase.instance.client.auth.signInWithPassword(
         email: emailController.text.trim(),
         password: passwordController.text,
       );
@@ -77,10 +89,16 @@ class _LoginScreenState extends State<LoginScreen> {
         return;
       }
 
-      if (response.user == null || response.session == null) {
-        throw const AuthException(
-          'Login failed. Please try again.',
-        );
+      final user = response.user;
+
+      if (user == null || response.session == null) {
+        throw const AuthException('Login failed. Please try again.');
+      }
+
+      final hasUsername = await userHasUsername(user.id);
+
+      if (!mounted) {
+        return;
       }
 
       await LoginSuccessPopup.show(context);
@@ -91,11 +109,23 @@ class _LoginScreenState extends State<LoginScreen> {
 
       Navigator.of(context).pushAndRemoveUntil(
         MaterialPageRoute(
-          builder: (context) => const HomeScreen(),
+          builder: (context) =>
+              hasUsername ? const HomeScreen() : const UsernameSetupScreen(),
         ),
         (route) => false,
       );
     } on AuthException catch (error) {
+      if (!mounted) {
+        return;
+      }
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(error.message),
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+    } on PostgrestException catch (error) {
       if (!mounted) {
         return;
       }
@@ -113,9 +143,7 @@ class _LoginScreenState extends State<LoginScreen> {
 
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text(
-            'Something went wrong. Please try again.',
-          ),
+          content: Text('Something went wrong. Please try again.'),
           behavior: SnackBarBehavior.floating,
         ),
       );
@@ -131,9 +159,7 @@ class _LoginScreenState extends State<LoginScreen> {
   void showPasswordResetMessage() {
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(
-        content: Text(
-          'Password reset will be added next.',
-        ),
+        content: Text('Password reset will be added next.'),
         behavior: SnackBarBehavior.floating,
       ),
     );
@@ -142,9 +168,7 @@ class _LoginScreenState extends State<LoginScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Log in'),
-      ),
+      appBar: AppBar(title: const Text('Log in')),
       body: SafeArea(
         child: SingleChildScrollView(
           padding: const EdgeInsets.all(24),
@@ -155,18 +179,12 @@ class _LoginScreenState extends State<LoginScreen> {
               children: [
                 const Text(
                   'Welcome back',
-                  style: TextStyle(
-                    fontSize: 32,
-                    fontWeight: FontWeight.w800,
-                  ),
+                  style: TextStyle(fontSize: 32, fontWeight: FontWeight.w800),
                 ),
                 const SizedBox(height: 8),
                 Text(
                   'Log in to continue your conversations.',
-                  style: TextStyle(
-                    fontSize: 16,
-                    color: Colors.grey.shade600,
-                  ),
+                  style: TextStyle(fontSize: 16, color: Colors.grey.shade600),
                 ),
                 const SizedBox(height: 32),
                 TextFormField(
@@ -177,9 +195,7 @@ class _LoginScreenState extends State<LoginScreen> {
                   validator: validateEmail,
                   decoration: InputDecoration(
                     labelText: 'Email address',
-                    prefixIcon: const Icon(
-                      Icons.email_outlined,
-                    ),
+                    prefixIcon: const Icon(Icons.email_outlined),
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(16),
                     ),
@@ -194,9 +210,7 @@ class _LoginScreenState extends State<LoginScreen> {
                   onFieldSubmitted: (_) => login(),
                   decoration: InputDecoration(
                     labelText: 'Password',
-                    prefixIcon: const Icon(
-                      Icons.lock_outline,
-                    ),
+                    prefixIcon: const Icon(Icons.lock_outline),
                     suffixIcon: IconButton(
                       onPressed: () {
                         setState(() {
@@ -228,11 +242,9 @@ class _LoginScreenState extends State<LoginScreen> {
                   child: FilledButton(
                     onPressed: isLoading ? null : login,
                     style: FilledButton.styleFrom(
-                      backgroundColor:
-                          const Color(0xFF5B5FEF),
+                      backgroundColor: const Color(0xFF5B5FEF),
                       shape: RoundedRectangleBorder(
-                        borderRadius:
-                            BorderRadius.circular(18),
+                        borderRadius: BorderRadius.circular(18),
                       ),
                     ),
                     child: isLoading
@@ -255,14 +267,11 @@ class _LoginScreenState extends State<LoginScreen> {
                 ),
                 const SizedBox(height: 18),
                 Row(
-                  mainAxisAlignment:
-                      MainAxisAlignment.center,
+                  mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     Text(
                       'New to ConnectUs?',
-                      style: TextStyle(
-                        color: Colors.grey.shade600,
-                      ),
+                      style: TextStyle(color: Colors.grey.shade600),
                     ),
                     TextButton(
                       onPressed: () {

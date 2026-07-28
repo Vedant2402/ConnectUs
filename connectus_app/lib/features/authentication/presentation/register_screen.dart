@@ -97,9 +97,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
       }
 
       if (response.user == null) {
-        throw const AuthException(
-          'Account creation failed. Please try again.',
-        );
+        throw const AuthException('Account creation failed. Please try again.');
       }
 
       emailController.clear();
@@ -120,11 +118,9 @@ class _RegisterScreenState extends State<RegisterScreen> {
         return;
       }
 
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(error.message),
-        ),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(error.message)));
     } catch (_) {
       if (!mounted) {
         return;
@@ -132,9 +128,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text(
-            'Something went wrong. Please try again.',
-          ),
+          content: Text('Something went wrong. Please try again.'),
         ),
       );
     } finally {
@@ -149,9 +143,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Create account'),
-      ),
+      appBar: AppBar(title: const Text('Create account')),
       body: SafeArea(
         child: SingleChildScrollView(
           padding: const EdgeInsets.all(24),
@@ -162,18 +154,12 @@ class _RegisterScreenState extends State<RegisterScreen> {
               children: [
                 const Text(
                   'Join ConnectUs',
-                  style: TextStyle(
-                    fontSize: 32,
-                    fontWeight: FontWeight.w800,
-                  ),
+                  style: TextStyle(fontSize: 32, fontWeight: FontWeight.w800),
                 ),
                 const SizedBox(height: 8),
                 Text(
                   'Create your account to start messaging.',
-                  style: TextStyle(
-                    fontSize: 16,
-                    color: Colors.grey.shade600,
-                  ),
+                  style: TextStyle(fontSize: 16, color: Colors.grey.shade600),
                 ),
                 const SizedBox(height: 32),
                 TextFormField(
@@ -230,8 +216,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                     suffixIcon: IconButton(
                       onPressed: () {
                         setState(() {
-                          hideConfirmPassword =
-                              !hideConfirmPassword;
+                          hideConfirmPassword = !hideConfirmPassword;
                         });
                       },
                       icon: Icon(

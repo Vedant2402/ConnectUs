@@ -11,68 +11,60 @@ class LoginSuccessPopup extends StatefulWidget {
       barrierLabel: 'Login successful',
       barrierColor: Colors.black.withValues(alpha: 0.22),
       transitionDuration: const Duration(milliseconds: 520),
-      pageBuilder: (
-        BuildContext context,
-        Animation<double> animation,
-        Animation<double> secondaryAnimation,
-      ) {
-        return const LoginSuccessPopup();
-      },
-      transitionBuilder: (
-        BuildContext context,
-        Animation<double> animation,
-        Animation<double> secondaryAnimation,
-        Widget child,
-      ) {
-        final fadeAnimation = CurvedAnimation(
-          parent: animation,
-          curve: const Interval(
-            0,
-            0.75,
-            curve: Curves.easeOutCubic,
-          ),
-          reverseCurve: Curves.easeInCubic,
-        );
+      pageBuilder:
+          (
+            BuildContext context,
+            Animation<double> animation,
+            Animation<double> secondaryAnimation,
+          ) {
+            return const LoginSuccessPopup();
+          },
+      transitionBuilder:
+          (
+            BuildContext context,
+            Animation<double> animation,
+            Animation<double> secondaryAnimation,
+            Widget child,
+          ) {
+            final fadeAnimation = CurvedAnimation(
+              parent: animation,
+              curve: const Interval(0, 0.75, curve: Curves.easeOutCubic),
+              reverseCurve: Curves.easeInCubic,
+            );
 
-        final scaleAnimation = Tween<double>(
-          begin: 0.92,
-          end: 1,
-        ).animate(
-          CurvedAnimation(
-            parent: animation,
-            curve: Curves.easeOutCubic,
-            reverseCurve: Curves.easeInCubic,
-          ),
-        );
+            final scaleAnimation = Tween<double>(begin: 0.92, end: 1).animate(
+              CurvedAnimation(
+                parent: animation,
+                curve: Curves.easeOutCubic,
+                reverseCurve: Curves.easeInCubic,
+              ),
+            );
 
-        final slideAnimation = Tween<Offset>(
-          begin: const Offset(0, 0.035),
-          end: Offset.zero,
-        ).animate(
-          CurvedAnimation(
-            parent: animation,
-            curve: Curves.easeOutCubic,
-            reverseCurve: Curves.easeInCubic,
-          ),
-        );
+            final slideAnimation =
+                Tween<Offset>(
+                  begin: const Offset(0, 0.035),
+                  end: Offset.zero,
+                ).animate(
+                  CurvedAnimation(
+                    parent: animation,
+                    curve: Curves.easeOutCubic,
+                    reverseCurve: Curves.easeInCubic,
+                  ),
+                );
 
-        return FadeTransition(
-          opacity: fadeAnimation,
-          child: SlideTransition(
-            position: slideAnimation,
-            child: ScaleTransition(
-              scale: scaleAnimation,
-              child: child,
-            ),
-          ),
-        );
-      },
+            return FadeTransition(
+              opacity: fadeAnimation,
+              child: SlideTransition(
+                position: slideAnimation,
+                child: ScaleTransition(scale: scaleAnimation, child: child),
+              ),
+            );
+          },
     );
   }
 
   @override
-  State<LoginSuccessPopup> createState() =>
-      _LoginSuccessPopupState();
+  State<LoginSuccessPopup> createState() => _LoginSuccessPopupState();
 }
 
 class _LoginSuccessPopupState extends State<LoginSuccessPopup>
@@ -90,14 +82,8 @@ class _LoginSuccessPopupState extends State<LoginSuccessPopup>
       duration: const Duration(milliseconds: 700),
     );
 
-    _checkScale = Tween<double>(
-      begin: 0.75,
-      end: 1,
-    ).animate(
-      CurvedAnimation(
-        parent: _checkController,
-        curve: Curves.easeOutBack,
-      ),
+    _checkScale = Tween<double>(begin: 0.75, end: 1).animate(
+      CurvedAnimation(parent: _checkController, curve: Curves.easeOutBack),
     );
 
     _checkOpacity = CurvedAnimation(
@@ -105,23 +91,17 @@ class _LoginSuccessPopupState extends State<LoginSuccessPopup>
       curve: Curves.easeOut,
     );
 
-    Future<void>.delayed(
-      const Duration(milliseconds: 180),
-      () {
-        if (mounted) {
-          _checkController.forward();
-        }
-      },
-    );
+    Future<void>.delayed(const Duration(milliseconds: 180), () {
+      if (mounted) {
+        _checkController.forward();
+      }
+    });
 
-    Future<void>.delayed(
-      const Duration(milliseconds: 2800),
-      () {
-        if (mounted) {
-          Navigator.of(context).pop();
-        }
-      },
-    );
+    Future<void>.delayed(const Duration(milliseconds: 2800), () {
+      if (mounted) {
+        Navigator.of(context).pop();
+      }
+    });
   }
 
   @override
@@ -140,9 +120,7 @@ class _LoginSuccessPopupState extends State<LoginSuccessPopup>
           child: Material(
             color: Colors.transparent,
             child: ConstrainedBox(
-              constraints: const BoxConstraints(
-                maxWidth: 330,
-              ),
+              constraints: const BoxConstraints(maxWidth: 330),
               child: GlassCard(
                 padding: const EdgeInsets.symmetric(
                   horizontal: 30,
@@ -159,8 +137,9 @@ class _LoginSuccessPopupState extends State<LoginSuccessPopup>
                           width: 78,
                           height: 78,
                           decoration: BoxDecoration(
-                            color: const Color(0xFF34C759)
-                                .withValues(alpha: 0.15),
+                            color: const Color(
+                              0xFF34C759,
+                            ).withValues(alpha: 0.15),
                             shape: BoxShape.circle,
                           ),
                           child: const Icon(

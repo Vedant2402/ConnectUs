@@ -11,20 +11,14 @@ Future<void> main() async {
   await dotenv.load(fileName: '.env');
 
   final supabaseUrl = dotenv.env['SUPABASE_URL'];
-  final supabasePublishableKey =
-      dotenv.env['SUPABASE_PUBLISHABLE_KEY'];
+  final supabasePublishableKey = dotenv.env['SUPABASE_PUBLISHABLE_KEY'];
 
   if (supabaseUrl == null || supabaseUrl.isEmpty) {
-    throw Exception(
-      'SUPABASE_URL is missing from the .env file.',
-    );
+    throw Exception('SUPABASE_URL is missing from the .env file.');
   }
 
-  if (supabasePublishableKey == null ||
-      supabasePublishableKey.isEmpty) {
-    throw Exception(
-      'SUPABASE_PUBLISHABLE_KEY is missing from the .env file.',
-    );
+  if (supabasePublishableKey == null || supabasePublishableKey.isEmpty) {
+    throw Exception('SUPABASE_PUBLISHABLE_KEY is missing from the .env file.');
   }
 
   await Supabase.initialize(
@@ -35,9 +29,6 @@ Future<void> main() async {
   await LiquidGlassWidgets.initialize();
 
   runApp(
-    LiquidGlassWidgets.wrap(
-      adaptiveQuality: true,
-      child: const ConnectUsApp(),
-    ),
+    LiquidGlassWidgets.wrap(adaptiveQuality: true, child: const ConnectUsApp()),
   );
 }

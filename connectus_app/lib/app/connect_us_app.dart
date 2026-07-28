@@ -12,9 +12,7 @@ class ConnectUsApp extends StatelessWidget {
       title: 'ConnectUs',
       theme: ThemeData(
         useMaterial3: true,
-        colorScheme: ColorScheme.fromSeed(
-          seedColor: const Color(0xFF5B5FEF),
-        ),
+        colorScheme: ColorScheme.fromSeed(seedColor: const Color(0xFF5B5FEF)),
       ),
       home: const WelcomeScreen(),
     );

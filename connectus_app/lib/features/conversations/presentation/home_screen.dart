@@ -15,8 +15,7 @@ class _HomeScreenState extends State<HomeScreen> {
   bool isLoggingOut = false;
 
   String get userEmail {
-    return Supabase.instance.client.auth.currentUser?.email ??
-        'ConnectUs user';
+    return Supabase.instance.client.auth.currentUser?.email ?? 'ConnectUs user';
   }
 
   Future<void> logout() async {
@@ -36,9 +35,7 @@ class _HomeScreenState extends State<HomeScreen> {
       }
 
       Navigator.of(context).pushAndRemoveUntil(
-        MaterialPageRoute(
-          builder: (context) => const WelcomeScreen(),
-        ),
+        MaterialPageRoute(builder: (context) => const WelcomeScreen()),
         (route) => false,
       );
     } on AuthException catch (error) {
@@ -129,10 +126,7 @@ class _HomeScreenState extends State<HomeScreen> {
                         ),
                         Text(
                           'Your conversations',
-                          style: TextStyle(
-                            fontSize: 14,
-                            color: Colors.black54,
-                          ),
+                          style: TextStyle(fontSize: 14, color: Colors.black54),
                         ),
                       ],
                     ),
@@ -140,10 +134,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   IconButton(
                     tooltip: 'Search users',
                     onPressed: showSearchMessage,
-                    icon: const Icon(
-                      Icons.search_rounded,
-                      size: 27,
-                    ),
+                    icon: const Icon(Icons.search_rounded, size: 27),
                   ),
                   PopupMenuButton<String>(
                     tooltip: 'Account options',
@@ -172,11 +163,7 @@ class _HomeScreenState extends State<HomeScreen> {
                             children: [
                               const Icon(Icons.logout_rounded),
                               const SizedBox(width: 12),
-                              Text(
-                                isLoggingOut
-                                    ? 'Logging out...'
-                                    : 'Log out',
-                              ),
+                              Text(isLoggingOut ? 'Logging out...' : 'Log out'),
                             ],
                           ),
                         ),
@@ -199,9 +186,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 padding: const EdgeInsets.fromLTRB(20, 18, 20, 20),
                 child: Center(
                   child: ConstrainedBox(
-                    constraints: const BoxConstraints(
-                      maxWidth: 430,
-                    ),
+                    constraints: const BoxConstraints(maxWidth: 430),
                     child: GlassCard(
                       padding: const EdgeInsets.symmetric(
                         horizontal: 28,
@@ -214,8 +199,9 @@ class _HomeScreenState extends State<HomeScreen> {
                             width: 92,
                             height: 92,
                             decoration: BoxDecoration(
-                              color: const Color(0xFF5B5FEF)
-                                  .withValues(alpha: 0.12),
+                              color: const Color(
+                                0xFF5B5FEF,
+                              ).withValues(alpha: 0.12),
                               shape: BoxShape.circle,
                             ),
                             child: const Icon(
@@ -252,16 +238,12 @@ class _HomeScreenState extends State<HomeScreen> {
                             child: FilledButton.icon(
                               onPressed: showNewChatMessage,
                               style: FilledButton.styleFrom(
-                                backgroundColor:
-                                    const Color(0xFF5B5FEF),
+                                backgroundColor: const Color(0xFF5B5FEF),
                                 shape: RoundedRectangleBorder(
-                                  borderRadius:
-                                      BorderRadius.circular(18),
+                                  borderRadius: BorderRadius.circular(18),
                                 ),
                               ),
-                              icon: const Icon(
-                                Icons.add_comment_rounded,
-                              ),
+                              icon: const Icon(Icons.add_comment_rounded),
                               label: const Text(
                                 'Start a new chat',
                                 style: TextStyle(
@@ -286,10 +268,7 @@ class _HomeScreenState extends State<HomeScreen> {
         child: Padding(
           padding: const EdgeInsets.fromLTRB(20, 8, 20, 14),
           child: GlassCard(
-            padding: const EdgeInsets.symmetric(
-              horizontal: 8,
-              vertical: 7,
-            ),
+            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 7),
             child: Row(
               children: [
                 Expanded(
@@ -316,9 +295,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     onTap: () {
                       ScaffoldMessenger.of(context).showSnackBar(
                         const SnackBar(
-                          content: Text(
-                            'Settings will be added later.',
-                          ),
+                          content: Text('Settings will be added later.'),
                           behavior: SnackBarBehavior.floating,
                         ),
                       );
@@ -349,40 +326,27 @@ class _NavigationItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final color = selected
-        ? const Color(0xFF5B5FEF)
-        : Colors.grey.shade600;
+    final color = selected ? const Color(0xFF5B5FEF) : Colors.grey.shade600;
 
     return InkWell(
       onTap: onTap,
       borderRadius: BorderRadius.circular(16),
       child: Padding(
-        padding: const EdgeInsets.symmetric(
-          horizontal: 8,
-          vertical: 8,
-        ),
+        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
             AnimatedContainer(
               duration: const Duration(milliseconds: 250),
               curve: Curves.easeOutCubic,
-              padding: const EdgeInsets.symmetric(
-                horizontal: 16,
-                vertical: 7,
-              ),
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 7),
               decoration: BoxDecoration(
                 color: selected
-                    ? const Color(0xFF5B5FEF)
-                        .withValues(alpha: 0.12)
+                    ? const Color(0xFF5B5FEF).withValues(alpha: 0.12)
                     : Colors.transparent,
                 borderRadius: BorderRadius.circular(16),
               ),
-              child: Icon(
-                icon,
-                color: color,
-                size: 23,
-              ),
+              child: Icon(icon, color: color, size: 23),
             ),
             const SizedBox(height: 4),
             Text(
@@ -390,9 +354,7 @@ class _NavigationItem extends StatelessWidget {
               style: TextStyle(
                 color: color,
                 fontSize: 12,
-                fontWeight: selected
-                    ? FontWeight.w700
-                    : FontWeight.w500,
+                fontWeight: selected ? FontWeight.w700 : FontWeight.w500,
               ),
             ),
           ],
