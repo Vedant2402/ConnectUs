@@ -26,6 +26,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
   List<Map<String, dynamic>> conversations = [];
   RealtimeChannel? homeChannel;
   Timer? reloadTimer;
+  Timer? presenceHeartbeat;
 
   String? get currentUserId {
     return Supabase.instance.client.auth.currentUser?.id;
@@ -40,6 +41,10 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
     setPresence(true);
+    presenceHeartbeat = Timer.periodic(
+      const Duration(seconds: 30),
+      (_) => setPresence(true),
+    );
     subscribeToHomeUpdates();
     loadConversations();
   }
@@ -48,6 +53,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
   void dispose() {
     WidgetsBinding.instance.removeObserver(this);
     reloadTimer?.cancel();
+    presenceHeartbeat?.cancel();
     final channel = homeChannel;
     if (channel != null) {
       Supabase.instance.client.removeChannel(channel);
@@ -852,6 +858,12 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
     final avatarUrl = conversation['avatar_url']?.toString();
 
     final isOnline = conversation['is_online'] as bool? ?? false;
+    final lastSeen = DateTime.tryParse(
+      conversation['last_seen_at']?.toString() ?? '',
+    )?.toLocal();
+    final isRecentlyActive =
+        lastSeen != null && DateTime.now().difference(lastSeen).inSeconds < 75;
+    final showAsOnline = isOnline && isRecentlyActive;
 
     final latestMessage = conversation['latest_message']?.toString();
 
@@ -899,7 +911,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                           )
                         : null,
                   ),
-                  if (isOnline)
+                  if (showAsOnline)
                     Positioned(
                       right: 0,
                       bottom: 0,
@@ -930,6 +942,19 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                       style: const TextStyle(
                         fontSize: 17,
                         fontWeight: FontWeight.w800,
+                      ),
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      showAsOnline ? 'online' : formatLastSeen(lastSeen),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: TextStyle(
+                        fontSize: 11.5,
+                        fontWeight: FontWeight.w600,
+                        color: showAsOnline
+                            ? const Color(0xFF2A9D55)
+                            : Colors.grey.shade600,
                       ),
                     ),
                     const SizedBox(height: 5),
@@ -1042,6 +1067,23 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
         ),
       ),
     );
+  }
+
+  String formatLastSeen(DateTime? value) {
+    if (value == null) return 'last seen unavailable';
+
+    final difference = DateTime.now().difference(value);
+
+    if (difference.inMinutes < 1) return 'last seen just now';
+    if (difference.inHours < 1) {
+      return 'last seen ${difference.inMinutes}m ago';
+    }
+    if (difference.inDays < 1) {
+      return 'last seen ${difference.inHours}h ago';
+    }
+    if (difference.inDays == 1) return 'last seen yesterday';
+
+    return 'last seen ${value.month}/${value.day}/${value.year}';
   }
 }
 

@@ -34,6 +34,7 @@ class _ChatScreenState extends State<ChatScreen> {
   late final Stream<List<Map<String, dynamic>>> messagesStream;
 
   late final Stream<List<Map<String, dynamic>>> receiptsStream;
+  late final Stream<List<Map<String, dynamic>>> otherProfileStream;
   late final RealtimeChannel typingChannel;
 
   final Set<String> markedAsReadMessageIds = {};
@@ -64,6 +65,11 @@ class _ChatScreenState extends State<ChatScreen> {
         .from('message_receipts')
         .stream(primaryKey: ['message_id', 'user_id'])
         .eq('user_id', widget.otherUserId);
+
+    otherProfileStream = Supabase.instance.client
+        .from('profiles')
+        .stream(primaryKey: ['id'])
+        .eq('id', widget.otherUserId);
 
     typingChannel = Supabase.instance.client
         .channel('typing:${widget.conversationId}')
@@ -329,6 +335,23 @@ class _ChatScreenState extends State<ChatScreen> {
     return '$displayHour:$minute $period';
   }
 
+  String formatLastSeen(DateTime? value) {
+    if (value == null) return 'last seen unavailable';
+
+    final difference = DateTime.now().difference(value);
+
+    if (difference.inMinutes < 1) return 'last seen just now';
+    if (difference.inHours < 1) {
+      return 'last seen ${difference.inMinutes}m ago';
+    }
+    if (difference.inDays < 1) {
+      return 'last seen ${difference.inHours}h ago';
+    }
+    if (difference.inDays == 1) return 'last seen yesterday';
+
+    return 'last seen ${value.month}/${value.day}/${value.year}';
+  }
+
   DateTime? parseMessageDate(dynamic value) {
     return DateTime.tryParse(value?.toString() ?? '')?.toLocal();
   }
@@ -389,79 +412,97 @@ class _ChatScreenState extends State<ChatScreen> {
         elevation: 0,
         backgroundColor: Colors.transparent,
         titleSpacing: 0,
-        title: Row(
-          children: [
-            Stack(
-              clipBehavior: Clip.none,
+        title: StreamBuilder<List<Map<String, dynamic>>>(
+          stream: otherProfileStream,
+          builder: (context, snapshot) {
+            final profile = snapshot.data?.isNotEmpty == true
+                ? snapshot.data!.first
+                : <String, dynamic>{};
+            final lastSeen = DateTime.tryParse(
+              profile['last_seen_at']?.toString() ?? '',
+            )?.toLocal();
+            final storedOnline =
+                profile['is_online'] as bool? ?? widget.isOnline;
+            final isRecentlyActive =
+                lastSeen != null &&
+                DateTime.now().difference(lastSeen).inSeconds < 75;
+            final showAsOnline = storedOnline && isRecentlyActive;
+
+            return Row(
               children: [
-                CircleAvatar(
-                  radius: 20,
-                  backgroundColor: const Color(0xFFE3E1FF),
-                  backgroundImage:
-                      widget.avatarUrl != null &&
-                          widget.avatarUrl!.trim().isNotEmpty
-                      ? NetworkImage(widget.avatarUrl!)
-                      : null,
-                  child:
-                      widget.avatarUrl == null ||
-                          widget.avatarUrl!.trim().isEmpty
-                      ? Text(
-                          getAvatarLetter(),
-                          style: const TextStyle(
-                            color: Color(0xFF5B5FEF),
-                            fontWeight: FontWeight.w800,
+                Stack(
+                  clipBehavior: Clip.none,
+                  children: [
+                    CircleAvatar(
+                      radius: 20,
+                      backgroundColor: const Color(0xFFE3E1FF),
+                      backgroundImage:
+                          widget.avatarUrl != null &&
+                              widget.avatarUrl!.trim().isNotEmpty
+                          ? NetworkImage(widget.avatarUrl!)
+                          : null,
+                      child:
+                          widget.avatarUrl == null ||
+                              widget.avatarUrl!.trim().isEmpty
+                          ? Text(
+                              getAvatarLetter(),
+                              style: const TextStyle(
+                                color: Color(0xFF5B5FEF),
+                                fontWeight: FontWeight.w800,
+                              ),
+                            )
+                          : null,
+                    ),
+                    if (showAsOnline)
+                      Positioned(
+                        right: -1,
+                        bottom: -1,
+                        child: Container(
+                          width: 12,
+                          height: 12,
+                          decoration: BoxDecoration(
+                            color: const Color(0xFF34C759),
+                            shape: BoxShape.circle,
+                            border: Border.all(
+                              color: const Color(0xFFF3F1FF),
+                              width: 2,
+                            ),
                           ),
-                        )
-                      : null,
-                ),
-                if (widget.isOnline)
-                  Positioned(
-                    right: -1,
-                    bottom: -1,
-                    child: Container(
-                      width: 12,
-                      height: 12,
-                      decoration: BoxDecoration(
-                        color: const Color(0xFF34C759),
-                        shape: BoxShape.circle,
-                        border: Border.all(
-                          color: const Color(0xFFF3F1FF),
-                          width: 2,
                         ),
                       ),
-                    ),
+                  ],
+                ),
+                const SizedBox(width: 11),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        widget.displayName,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: const TextStyle(
+                          fontSize: 17,
+                          fontWeight: FontWeight.w800,
+                        ),
+                      ),
+                      Text(
+                        showAsOnline ? 'online' : formatLastSeen(lastSeen),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: showAsOnline
+                              ? const Color(0xFF2A9D55)
+                              : Colors.grey.shade600,
+                        ),
+                      ),
+                    ],
                   ),
+                ),
               ],
-            ),
-            const SizedBox(width: 11),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    widget.displayName,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: const TextStyle(
-                      fontSize: 17,
-                      fontWeight: FontWeight.w800,
-                    ),
-                  ),
-                  Text(
-                    widget.isOnline ? 'Online' : '@${widget.username}',
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: TextStyle(
-                      fontSize: 12,
-                      color: widget.isOnline
-                          ? const Color(0xFF2A9D55)
-                          : Colors.grey.shade600,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ],
+            );
+          },
         ),
         actions: [
           IconButton(
