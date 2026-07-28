@@ -23,7 +23,7 @@
     <img src="https://img.shields.io/badge/Day%201-Complete-brightgreen" alt="Day 1 complete">
   </a>
   <a href="https://github.com/Vedant2402/ConnectUs">
-    <img src="https://img.shields.io/badge/Day%202-In%20Progress-orange" alt="Day 2 in progress">
+    <img src="https://img.shields.io/badge/Day%202-Complete-brightgreen" alt="Day 2 complete">
   </a>
 </p>
 
@@ -37,11 +37,12 @@ Day 1 established the core foundation of ConnectUs.
 
 The application now supports authentication, user profiles, unique usernames, user discovery, one-to-one conversation creation, real-time messaging, message receipts, and conversation history.
 
-### Day 2 — In Progress
+### Day 2 — Complete
 
-Day 2 focuses on improving the quality of the messaging experience.
-
-Planned work includes unread-message tracking, typing indicators, real-time presence, message grouping, conversation updates, profile improvements, and additional interface polish.
+Day 2 improved the messaging experience with unread counters, reliable last-read
+tracking, typing feedback, online presence, real-time homepage updates,
+conversation filtering, message grouping, date separators, session restoration,
+and editable profile settings.
 
 ---
 
@@ -114,23 +115,30 @@ The project uses a single Flutter codebase for Android, iOS, and web-based devel
 - [x] Flutter static-analysis checks
 - [x] Initial automated widget test
 
-### Day 2 Work
+### Day 2 Deliverables
 
-- [ ] Real-time homepage conversation updates
-- [ ] Unread-message counters
-- [ ] Last-read message tracking
-- [ ] Typing indicators
-- [ ] Real-time online presence
-- [ ] Last-seen information
-- [ ] Conversation search
-- [ ] Date separators inside chats
-- [ ] Consecutive-message grouping
-- [ ] Improved automatic scrolling
+- [x] Real-time homepage conversation updates
+- [x] Unread-message counters
+- [x] Last-read message tracking
+- [x] Typing indicators
+- [x] Real-time online presence
+- [x] Last-seen information
+- [x] Conversation search
+- [x] Date separators inside chats
+- [x] Consecutive-message grouping
+- [x] Improved automatic scrolling
+- [x] Session restoration
+- [x] Profile editing
+- [x] Settings screen
+- [x] Supabase unread-tracking migration
+- [x] Updated automated widget test
+- [x] Static analysis and test verification
+
+### Upcoming Work
+
 - [ ] Optimistic message sending
 - [ ] Message retry handling
 - [ ] Better loading placeholders
-- [ ] Profile editing
-- [ ] Settings screen
 - [ ] Dark appearance mode
 - [ ] Additional animations and motion polish
 
@@ -301,7 +309,8 @@ ConnectUs/
     ├── ios/
     ├── lib/
     │   ├── app/
-    │   │   └── connect_us_app.dart
+    │   │   ├── connect_us_app.dart
+    │   │   └── startup_screen.dart
     │   │
     │   ├── core/
     │   │   └── widgets/
@@ -326,13 +335,19 @@ ConnectUs/
     │   │   │   └── presentation/
     │   │   │       └── home_screen.dart
     │   │   │
-    │   │   └── chat/
+    │   │   ├── chat/
     │   │       └── presentation/
     │   │           └── chat_screen.dart
+    │   │   │
+    │   │   └── settings/
+    │   │       └── presentation/
+    │   │           └── settings_screen.dart
     │   │
     │   └── main.dart
     │
     ├── test/
+    ├── supabase/
+    │   └── migrations/
     ├── web/
     ├── .env.example
     ├── .gitignore
@@ -451,10 +466,17 @@ Supabase Realtime is enabled for:
 
 - `messages`
 - `message_receipts`
+- `conversation_members`
+- `profiles`
 
 The chat screen listens to the `messages` table using the active conversation ID.
 
 When a recipient opens the conversation, the application creates or updates message-receipt rows. The sender’s chat screen listens for those receipt changes and updates the message indicator.
+
+The conversation home subscribes to message, membership, and profile changes so
+latest-message previews, unread counts, and presence information refresh without
+manual navigation. Typing feedback uses an ephemeral Realtime broadcast channel
+scoped to the active conversation.
 
 Current message-state behavior:
 
@@ -734,9 +756,9 @@ nothing to commit, working tree clean
 - [x] Automatic profile creation
 - [x] Username search
 - [x] User profile preview
-- [ ] Profile editing
+- [x] Profile editing
 - [ ] Profile photographs
-- [ ] User biographies through settings
+- [x] User biographies through settings
 
 ### Milestone 4 — Core Chat
 
@@ -753,9 +775,9 @@ nothing to commit, working tree clean
 - [x] Sent-message state
 - [x] Delivered-message state
 - [x] Read-message state
-- [ ] Typing indicators
-- [ ] Unread counts
-- [ ] Last-read tracking
+- [x] Typing indicators
+- [x] Unread counts
+- [x] Last-read tracking
 - [ ] Message pagination
 - [ ] Local message caching
 - [ ] Retry handling
@@ -763,11 +785,11 @@ nothing to commit, working tree clean
 
 ### Milestone 6 — Presence and Profiles
 
-- [ ] Real-time online presence
-- [ ] Last-seen updates
-- [ ] Profile editing
+- [x] Real-time online presence
+- [x] Last-seen updates
+- [x] Profile editing
 - [ ] Avatar uploads
-- [ ] Conversation search
+- [x] Conversation search
 - [ ] Mute controls
 
 ### Milestone 7 — Visual Polish
@@ -819,22 +841,25 @@ Two users can now:
 
 ---
 
-## Day 2 Plan
+## Day 2 Milestone
 
-Day 2 focuses on improving the experience around the working messaging foundation.
+```text
+Day 2 Complete — Unread Tracking, Presence, Typing,
+Conversation Updates, and Messaging Polish
+```
 
-Primary Day 2 tasks:
+Day 2 completed the first messaging-quality milestone:
 
-1. Add unread-message counters
-2. Track the last-read message
-3. Add typing indicators
-4. Implement real online and offline presence
-5. Display last-seen information
-6. Update homepage conversations in real time
-7. Add date separators
-8. Group consecutive messages
-9. Improve message scrolling behavior
-10. Improve profile and settings functionality
+1. Conversations refresh when messages, memberships, or profiles change.
+2. Unread badges are calculated per conversation.
+3. Opening a chat updates the member’s last-read message through a secured RPC.
+4. Incoming messages continue updating read-receipt rows.
+5. Typing feedback is delivered through Realtime broadcasts.
+6. Online state and last-seen timestamps are maintained from app lifecycle events.
+7. Conversations can be filtered by name, username, or latest message.
+8. Chat history includes date separators and grouped consecutive messages.
+9. Existing authenticated sessions are restored at startup.
+10. Users can edit their display name and biography in Settings.
 
 ---
 
