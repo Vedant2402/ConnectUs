@@ -23,6 +23,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
   bool isLoadingConversations = true;
   String conversationQuery = '';
   String conversationFilter = 'All';
+  int selectedTab = 2;
 
   String? conversationError;
 
@@ -30,6 +31,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
   RealtimeChannel? homeChannel;
   Timer? reloadTimer;
   Timer? presenceHeartbeat;
+  late final PageController pageController;
 
   String? get currentUserId {
     return Supabase.instance.client.auth.currentUser?.id;
@@ -38,6 +40,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
   @override
   void initState() {
     super.initState();
+    pageController = PageController(initialPage: selectedTab);
     WidgetsBinding.instance.addObserver(this);
     setPresence(true);
     presenceHeartbeat = Timer.periodic(
@@ -53,6 +56,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
     WidgetsBinding.instance.removeObserver(this);
     reloadTimer?.cancel();
     presenceHeartbeat?.cancel();
+    pageController.dispose();
     final channel = homeChannel;
     if (channel != null) {
       Supabase.instance.client.removeChannel(channel);
@@ -558,64 +562,269 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
     return Scaffold(
       extendBody: true,
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
-      body: SafeArea(
-        child: Column(
-          children: [
-            buildHeader(),
-            if (conversations.isNotEmpty) ...[
-              Padding(
-                padding: const EdgeInsets.fromLTRB(20, 8, 20, 10),
-                child: TextField(
-                  onChanged: (value) =>
-                      setState(() => conversationQuery = value.trim()),
-                  decoration: InputDecoration(
-                    hintText: 'Ask ConnectUs or Search',
-                    prefixIcon: const Icon(Icons.search_rounded, size: 21),
-                    contentPadding: const EdgeInsets.symmetric(vertical: 13),
-                  ),
+      body: PageView(
+        controller: pageController,
+        onPageChanged: (index) => setState(() => selectedTab = index),
+        children: [
+          buildUpdatesTab(),
+          buildCallsTab(),
+          buildChatsTab(),
+          buildSettingsTab(),
+        ],
+      ),
+      bottomNavigationBar: buildBottomNavigation(),
+    );
+  }
+
+  Widget buildChatsTab() {
+    return SafeArea(
+      child: Column(
+        children: [
+          buildHeader(),
+          if (conversations.isNotEmpty) ...[
+            Padding(
+              padding: const EdgeInsets.fromLTRB(20, 8, 20, 10),
+              child: TextField(
+                onChanged: (value) =>
+                    setState(() => conversationQuery = value.trim()),
+                decoration: const InputDecoration(
+                  hintText: 'Ask ConnectUs or Search',
+                  prefixIcon: Icon(Icons.search_rounded, size: 21),
+                  contentPadding: EdgeInsets.symmetric(vertical: 13),
                 ),
               ),
-              SizedBox(
-                height: 40,
-                child: ListView(
-                  scrollDirection: Axis.horizontal,
-                  padding: const EdgeInsets.symmetric(horizontal: 20),
-                  children: ['All', 'Unread', 'Favorites'].map((filter) {
-                    final selected = conversationFilter == filter;
-                    return Padding(
-                      padding: const EdgeInsets.only(right: 9),
-                      child: ChoiceChip(
-                        label: Text(filter),
-                        selected: selected,
-                        showCheckmark: false,
-                        onSelected: (_) =>
-                            setState(() => conversationFilter = filter),
-                        side: BorderSide(color: Theme.of(context).dividerColor),
-                        backgroundColor: Theme.of(
-                          context,
-                        ).colorScheme.surfaceContainerHighest,
-                        selectedColor: Theme.of(
-                          context,
-                        ).colorScheme.primaryContainer,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
+            ),
+            SizedBox(
+              height: 40,
+              child: ListView(
+                scrollDirection: Axis.horizontal,
+                padding: const EdgeInsets.symmetric(horizontal: 20),
+                children: ['All', 'Unread', 'Favorites'].map((filter) {
+                  final selected = conversationFilter == filter;
+                  return Padding(
+                    padding: const EdgeInsets.only(right: 9),
+                    child: ChoiceChip(
+                      label: Text(filter),
+                      selected: selected,
+                      showCheckmark: false,
+                      onSelected: (_) =>
+                          setState(() => conversationFilter = filter),
+                      side: BorderSide(color: Theme.of(context).dividerColor),
+                      backgroundColor: Theme.of(
+                        context,
+                      ).colorScheme.surfaceContainerHighest,
+                      selectedColor: Theme.of(
+                        context,
+                      ).colorScheme.primaryContainer,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
                       ),
-                    );
-                  }).toList(),
-                ),
-              ),
-            ],
-            Expanded(
-              child: RefreshIndicator(
-                onRefresh: loadConversations,
-                child: buildConversationContent(),
+                    ),
+                  );
+                }).toList(),
               ),
             ),
           ],
+          Expanded(
+            child: RefreshIndicator(
+              onRefresh: loadConversations,
+              child: buildConversationContent(),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void selectTab(int index) {
+    pageController.animateToPage(
+      index,
+      duration: const Duration(milliseconds: 320),
+      curve: Curves.easeOutCubic,
+    );
+  }
+
+  Widget buildUpdatesTab() {
+    return buildSimpleTab(
+      title: 'Updates',
+      icon: Icons.data_usage_rounded,
+      heading: 'Stay connected',
+      description:
+          'Status updates from your contacts will appear here in a future milestone.',
+      actionLabel: 'Find people',
+      onAction: openUserSearch,
+    );
+  }
+
+  Widget buildCallsTab() {
+    return buildSimpleTab(
+      title: 'Calls',
+      icon: Icons.call_outlined,
+      heading: 'Your calls',
+      description: 'Your secure voice and video call history will appear here.',
+      actionLabel: 'Find someone',
+      onAction: openUserSearch,
+    );
+  }
+
+  Widget buildSimpleTab({
+    required String title,
+    required IconData icon,
+    required String heading,
+    required String description,
+    required String actionLabel,
+    required VoidCallback onAction,
+  }) {
+    return SafeArea(
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(20, 28, 20, 110),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              title,
+              style: const TextStyle(
+                fontSize: 36,
+                fontWeight: FontWeight.w800,
+                letterSpacing: -1,
+              ),
+            ),
+            const Spacer(),
+            Center(
+              child: Column(
+                children: [
+                  CircleAvatar(
+                    radius: 42,
+                    backgroundColor: Theme.of(
+                      context,
+                    ).colorScheme.primaryContainer,
+                    child: Icon(
+                      icon,
+                      size: 40,
+                      color: Theme.of(context).colorScheme.primary,
+                    ),
+                  ),
+                  const SizedBox(height: 20),
+                  Text(
+                    heading,
+                    style: const TextStyle(
+                      fontSize: 22,
+                      fontWeight: FontWeight.w800,
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  ConstrainedBox(
+                    constraints: const BoxConstraints(maxWidth: 340),
+                    child: Text(
+                      description,
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                        height: 1.5,
+                        color: Theme.of(context).colorScheme.onSurfaceVariant,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 22),
+                  FilledButton.icon(
+                    onPressed: onAction,
+                    icon: const Icon(Icons.person_search_rounded),
+                    label: Text(actionLabel),
+                  ),
+                ],
+              ),
+            ),
+            const Spacer(),
+          ],
         ),
       ),
-      bottomNavigationBar: buildBottomNavigation(),
+    );
+  }
+
+  Widget buildSettingsTab() {
+    final email = Supabase.instance.client.auth.currentUser?.email ?? '';
+
+    return SafeArea(
+      child: ListView(
+        padding: const EdgeInsets.fromLTRB(20, 28, 20, 110),
+        children: [
+          const Text(
+            'Settings',
+            style: TextStyle(
+              fontSize: 36,
+              fontWeight: FontWeight.w800,
+              letterSpacing: -1,
+            ),
+          ),
+          const SizedBox(height: 28),
+          Container(
+            decoration: BoxDecoration(
+              color: Theme.of(context).colorScheme.surfaceContainerHighest,
+              borderRadius: BorderRadius.circular(18),
+            ),
+            child: ListTile(
+              leading: CircleAvatar(
+                backgroundColor: Theme.of(context).colorScheme.primaryContainer,
+                child: Icon(
+                  Icons.person_rounded,
+                  color: Theme.of(context).colorScheme.primary,
+                ),
+              ),
+              title: const Text(
+                'Profile',
+                style: TextStyle(fontWeight: FontWeight.w700),
+              ),
+              subtitle: Text(email),
+              trailing: const Icon(Icons.chevron_right_rounded),
+              onTap: () async {
+                await Navigator.of(context).push(
+                  MaterialPageRoute(builder: (_) => const SettingsScreen()),
+                );
+                if (mounted) {
+                  await loadConversations(showLoading: false);
+                }
+              },
+            ),
+          ),
+          const SizedBox(height: 14),
+          Container(
+            decoration: BoxDecoration(
+              color: Theme.of(context).colorScheme.surfaceContainerHighest,
+              borderRadius: BorderRadius.circular(18),
+            ),
+            child: ValueListenableBuilder<ThemeMode>(
+              valueListenable: AppThemeController.mode,
+              builder: (context, mode, _) {
+                return SwitchListTile(
+                  secondary: Icon(
+                    mode == ThemeMode.dark
+                        ? Icons.dark_mode_rounded
+                        : Icons.light_mode_rounded,
+                  ),
+                  title: const Text(
+                    'Dark mode',
+                    style: TextStyle(fontWeight: FontWeight.w700),
+                  ),
+                  subtitle: const Text('Light mode is the default'),
+                  value: mode == ThemeMode.dark,
+                  onChanged: AppThemeController.setDark,
+                );
+              },
+            ),
+          ),
+          const SizedBox(height: 14),
+          Container(
+            decoration: BoxDecoration(
+              color: Theme.of(context).colorScheme.surfaceContainerHighest,
+              borderRadius: BorderRadius.circular(18),
+            ),
+            child: ListTile(
+              leading: const Icon(Icons.logout_rounded),
+              title: Text(isLoggingOut ? 'Logging out…' : 'Log out'),
+              onTap: isLoggingOut ? null : logout,
+            ),
+          ),
+        ],
+      ),
     );
   }
 
@@ -1094,49 +1303,32 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                   child: _NavigationItem(
                     icon: Icons.data_usage_rounded,
                     label: 'Updates',
-                    selected: false,
-                    onTap: openUserSearch,
+                    selected: selectedTab == 0,
+                    onTap: () => selectTab(0),
                   ),
                 ),
                 Expanded(
                   child: _NavigationItem(
                     icon: Icons.call_outlined,
                     label: 'Calls',
-                    selected: false,
-                    onTap: () {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(
-                          content: Text(
-                            'Calls are coming in a future milestone.',
-                          ),
-                        ),
-                      );
-                    },
+                    selected: selectedTab == 1,
+                    onTap: () => selectTab(1),
                   ),
                 ),
                 Expanded(
                   child: _NavigationItem(
                     icon: Icons.chat_bubble_rounded,
                     label: 'Chats',
-                    selected: true,
-                    onTap: loadConversations,
+                    selected: selectedTab == 2,
+                    onTap: () => selectTab(2),
                   ),
                 ),
                 Expanded(
                   child: _NavigationItem(
                     icon: Icons.settings_outlined,
                     label: 'Settings',
-                    selected: false,
-                    onTap: () async {
-                      await Navigator.of(context).push(
-                        MaterialPageRoute(
-                          builder: (context) => const SettingsScreen(),
-                        ),
-                      );
-                      if (mounted) {
-                        await loadConversations(showLoading: false);
-                      }
-                    },
+                    selected: selectedTab == 3,
+                    onTap: () => selectTab(3),
                   ),
                 ),
               ],
