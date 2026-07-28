@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:ui';
 
 import 'package:flutter/material.dart';
 import 'package:liquid_glass_widgets/liquid_glass_widgets.dart';
@@ -555,6 +556,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      extendBody: true,
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       body: SafeArea(
         child: Column(
@@ -720,7 +722,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
     if (conversationError != null) {
       return ListView(
         physics: const AlwaysScrollableScrollPhysics(),
-        padding: const EdgeInsets.fromLTRB(20, 120, 20, 24),
+        padding: const EdgeInsets.fromLTRB(20, 120, 20, 110),
         children: [
           GlassCard(
             padding: const EdgeInsets.all(26),
@@ -759,7 +761,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
     if (conversations.isEmpty) {
       return ListView(
         physics: const AlwaysScrollableScrollPhysics(),
-        padding: const EdgeInsets.fromLTRB(20, 120, 20, 24),
+        padding: const EdgeInsets.fromLTRB(20, 120, 20, 110),
         children: [
           Center(
             child: ConstrainedBox(
@@ -876,7 +878,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
 
     return ListView.separated(
       physics: const AlwaysScrollableScrollPhysics(),
-      padding: const EdgeInsets.fromLTRB(20, 12, 20, 24),
+      padding: const EdgeInsets.fromLTRB(20, 12, 20, 110),
       itemCount: visibleConversations.length,
       separatorBuilder: (_, _) =>
           Divider(height: 1, indent: 88, color: Theme.of(context).dividerColor),
@@ -1060,64 +1062,86 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
   Widget buildBottomNavigation() {
     return SafeArea(
       top: false,
-      child: Container(
-        decoration: BoxDecoration(
-          color: Theme.of(context).colorScheme.surface.withValues(alpha: 0.96),
-          border: Border(
-            top: BorderSide(color: Theme.of(context).dividerColor),
+      minimum: const EdgeInsets.fromLTRB(12, 0, 12, 10),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(34),
+        child: BackdropFilter(
+          filter: ImageFilter.blur(sigmaX: 18, sigmaY: 18),
+          child: Container(
+            height: 76,
+            decoration: BoxDecoration(
+              color: Theme.of(
+                context,
+              ).colorScheme.surfaceContainerHighest.withValues(alpha: 0.88),
+              borderRadius: BorderRadius.circular(34),
+              border: Border.all(
+                color: Theme.of(context).brightness == Brightness.dark
+                    ? Colors.white.withValues(alpha: 0.14)
+                    : Colors.black.withValues(alpha: 0.08),
+              ),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withValues(alpha: 0.16),
+                  blurRadius: 28,
+                  offset: const Offset(0, 10),
+                ),
+              ],
+            ),
+            padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 6),
+            child: Row(
+              children: [
+                Expanded(
+                  child: _NavigationItem(
+                    icon: Icons.data_usage_rounded,
+                    label: 'Updates',
+                    selected: false,
+                    onTap: openUserSearch,
+                  ),
+                ),
+                Expanded(
+                  child: _NavigationItem(
+                    icon: Icons.call_outlined,
+                    label: 'Calls',
+                    selected: false,
+                    onTap: () {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                          content: Text(
+                            'Calls are coming in a future milestone.',
+                          ),
+                        ),
+                      );
+                    },
+                  ),
+                ),
+                Expanded(
+                  child: _NavigationItem(
+                    icon: Icons.chat_bubble_rounded,
+                    label: 'Chats',
+                    selected: true,
+                    onTap: loadConversations,
+                  ),
+                ),
+                Expanded(
+                  child: _NavigationItem(
+                    icon: Icons.settings_outlined,
+                    label: 'Settings',
+                    selected: false,
+                    onTap: () async {
+                      await Navigator.of(context).push(
+                        MaterialPageRoute(
+                          builder: (context) => const SettingsScreen(),
+                        ),
+                      );
+                      if (mounted) {
+                        await loadConversations(showLoading: false);
+                      }
+                    },
+                  ),
+                ),
+              ],
+            ),
           ),
-        ),
-        padding: const EdgeInsets.fromLTRB(10, 6, 10, 7),
-        child: Row(
-          children: [
-            Expanded(
-              child: _NavigationItem(
-                icon: Icons.data_usage_rounded,
-                label: 'Updates',
-                selected: false,
-                onTap: openUserSearch,
-              ),
-            ),
-            Expanded(
-              child: _NavigationItem(
-                icon: Icons.call_outlined,
-                label: 'Calls',
-                selected: false,
-                onTap: () {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content: Text('Calls are coming in a future milestone.'),
-                    ),
-                  );
-                },
-              ),
-            ),
-            Expanded(
-              child: _NavigationItem(
-                icon: Icons.chat_bubble_rounded,
-                label: 'Chats',
-                selected: true,
-                onTap: loadConversations,
-              ),
-            ),
-            Expanded(
-              child: _NavigationItem(
-                icon: Icons.settings_outlined,
-                label: 'Settings',
-                selected: false,
-                onTap: () async {
-                  await Navigator.of(context).push(
-                    MaterialPageRoute(
-                      builder: (context) => const SettingsScreen(),
-                    ),
-                  );
-                  if (mounted) {
-                    await loadConversations(showLoading: false);
-                  }
-                },
-              ),
-            ),
-          ],
         ),
       ),
     );
@@ -1198,19 +1222,24 @@ class _NavigationItem extends StatelessWidget {
       onTap: onTap,
       borderRadius: BorderRadius.circular(16),
       child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
+        padding: const EdgeInsets.symmetric(horizontal: 3, vertical: 3),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
             AnimatedContainer(
               duration: const Duration(milliseconds: 250),
               curve: Curves.easeOutCubic,
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 7),
+              padding: EdgeInsets.symmetric(
+                horizontal: selected ? 18 : 12,
+                vertical: 6,
+              ),
               decoration: BoxDecoration(
                 color: selected
-                    ? const Color(0xFF6F927E).withValues(alpha: 0.12)
+                    ? Theme.of(
+                        context,
+                      ).colorScheme.onSurface.withValues(alpha: 0.14)
                     : Colors.transparent,
-                borderRadius: BorderRadius.circular(16),
+                borderRadius: BorderRadius.circular(24),
               ),
               child: Icon(icon, color: color, size: 23),
             ),
