@@ -20,6 +20,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
   bool isLoggingOut = false;
   bool isLoadingConversations = true;
   String conversationQuery = '';
+  String conversationFilter = 'All';
 
   String? conversationError;
 
@@ -557,30 +558,61 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFF8F3E7),
+      backgroundColor: Colors.white,
       body: SafeArea(
         child: Column(
           children: [
             buildHeader(),
-            if (conversations.isNotEmpty)
+            if (conversations.isNotEmpty) ...[
               Padding(
-                padding: const EdgeInsets.fromLTRB(20, 4, 20, 8),
+                padding: const EdgeInsets.fromLTRB(20, 8, 20, 10),
                 child: TextField(
-                  onChanged: (value) {
-                    setState(() => conversationQuery = value.trim());
-                  },
+                  onChanged: (value) =>
+                      setState(() => conversationQuery = value.trim()),
                   decoration: InputDecoration(
                     hintText: 'Search conversations',
-                    prefixIcon: const Icon(Icons.search_rounded),
+                    prefixIcon: const Icon(Icons.search_rounded, size: 21),
                     filled: true,
-                    fillColor: Colors.white.withValues(alpha: 0.72),
+                    fillColor: const Color(0xFFF6F7F6),
+                    contentPadding: const EdgeInsets.symmetric(vertical: 13),
                     border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(20),
+                      borderRadius: BorderRadius.circular(15),
                       borderSide: BorderSide.none,
                     ),
                   ),
                 ),
               ),
+              SizedBox(
+                height: 40,
+                child: ListView(
+                  scrollDirection: Axis.horizontal,
+                  padding: const EdgeInsets.symmetric(horizontal: 20),
+                  children: ['All', 'Unread', 'Online'].map((filter) {
+                    final selected = conversationFilter == filter;
+                    return Padding(
+                      padding: const EdgeInsets.only(right: 9),
+                      child: ChoiceChip(
+                        label: Text(filter),
+                        selected: selected,
+                        showCheckmark: false,
+                        onSelected: (_) =>
+                            setState(() => conversationFilter = filter),
+                        side: BorderSide(
+                          color: selected
+                              ? const Color(0xFF6F927E)
+                              : const Color(0xFFE1E5E2),
+                        ),
+                        backgroundColor: Colors.white,
+                        selectedColor: const Color(0xFFDDEEE3),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                      ),
+                    );
+                  }).toList(),
+                ),
+              ),
+            ],
             Expanded(
               child: RefreshIndicator(
                 onRefresh: loadConversations,
@@ -596,14 +628,14 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
 
   Widget buildHeader() {
     return Padding(
-      padding: const EdgeInsets.fromLTRB(20, 18, 12, 12),
+      padding: const EdgeInsets.fromLTRB(20, 18, 14, 10),
       child: Row(
         children: [
           Container(
-            width: 48,
-            height: 48,
+            width: 46,
+            height: 46,
             decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(16),
+              shape: BoxShape.circle,
               boxShadow: [
                 BoxShadow(
                   color: const Color(0xFF78A68A).withValues(alpha: 0.18),
@@ -618,30 +650,33 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
               fit: BoxFit.cover,
             ),
           ),
-          const SizedBox(width: 14),
-          const Expanded(
+          const SizedBox(width: 12),
+          Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  'ConnectUs',
+                  'Hello 👋',
                   style: TextStyle(
-                    fontSize: 25,
-                    fontWeight: FontWeight.w800,
-                    letterSpacing: -0.5,
+                    fontSize: 12,
+                    color: Color(0xFF6F927E),
+                    fontWeight: FontWeight.w600,
                   ),
                 ),
                 Text(
                   'Your conversations',
-                  style: TextStyle(fontSize: 14, color: Colors.black54),
+                  style: TextStyle(fontSize: 17, fontWeight: FontWeight.w800),
                 ),
               ],
             ),
           ),
           IconButton(
-            tooltip: 'Search users',
-            onPressed: openUserSearch,
-            icon: const Icon(Icons.search_rounded, size: 27),
+            tooltip: 'Notifications',
+            onPressed: () {},
+            style: IconButton.styleFrom(
+              backgroundColor: const Color(0xFFF5F6F5),
+            ),
+            icon: const Icon(Icons.notifications_none_rounded, size: 21),
           ),
           PopupMenuButton<String>(
             tooltip: 'Account options',
@@ -676,11 +711,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                 ),
               ];
             },
-            icon: const CircleAvatar(
-              radius: 18,
-              backgroundColor: Color(0xFFDDEEE3),
-              child: Icon(Icons.person_rounded, color: Color(0xFF6F927E)),
-            ),
+            icon: const Icon(Icons.menu_rounded),
           ),
         ],
       ),
@@ -818,7 +849,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
     }
 
     final normalizedQuery = conversationQuery.toLowerCase();
-    final visibleConversations = normalizedQuery.isEmpty
+    var visibleConversations = normalizedQuery.isEmpty
         ? conversations
         : conversations.where((conversation) {
             final name = conversation['display_name']?.toString().toLowerCase();
@@ -830,6 +861,18 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                 (username?.contains(normalizedQuery) ?? false) ||
                 (message?.contains(normalizedQuery) ?? false);
           }).toList();
+
+    if (conversationFilter == 'Unread') {
+      visibleConversations = visibleConversations
+          .where(
+            (conversation) => (conversation['unread_count'] as int? ?? 0) > 0,
+          )
+          .toList();
+    } else if (conversationFilter == 'Online') {
+      visibleConversations = visibleConversations
+          .where((conversation) => conversation['is_online'] == true)
+          .toList();
+    }
 
     if (visibleConversations.isEmpty) {
       return ListView(
@@ -887,11 +930,22 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
 
     final unreadCount = conversation['unread_count'] as int? ?? 0;
 
-    return GlassCard(
-      padding: EdgeInsets.zero,
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: const Color(0xFFE7E9E7)),
+        boxShadow: [
+          BoxShadow(
+            color: const Color(0xFF25332C).withValues(alpha: 0.035),
+            blurRadius: 16,
+            offset: const Offset(0, 6),
+          ),
+        ],
+      ),
       child: InkWell(
         onTap: () => openConversation(conversation),
-        borderRadius: BorderRadius.circular(24),
+        borderRadius: BorderRadius.circular(16),
         child: Padding(
           padding: const EdgeInsets.all(16),
           child: Row(
@@ -1029,47 +1083,62 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
   Widget buildBottomNavigation() {
     return SafeArea(
       top: false,
-      child: Padding(
-        padding: const EdgeInsets.fromLTRB(20, 8, 20, 14),
-        child: GlassCard(
-          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 7),
-          child: Row(
-            children: [
-              Expanded(
-                child: _NavigationItem(
-                  icon: Icons.chat_bubble_rounded,
-                  label: 'Chats',
-                  selected: true,
-                  onTap: loadConversations,
-                ),
+      child: Container(
+        decoration: const BoxDecoration(
+          color: Colors.white,
+          border: Border(top: BorderSide(color: Color(0xFFE7E9E7))),
+        ),
+        padding: const EdgeInsets.fromLTRB(10, 6, 10, 7),
+        child: Row(
+          children: [
+            Expanded(
+              child: _NavigationItem(
+                icon: Icons.chat_bubble_rounded,
+                label: 'Chats',
+                selected: true,
+                onTap: loadConversations,
               ),
-              Expanded(
-                child: _NavigationItem(
-                  icon: Icons.people_outline_rounded,
-                  label: 'People',
-                  selected: false,
-                  onTap: openUserSearch,
-                ),
+            ),
+            Expanded(
+              child: _NavigationItem(
+                icon: Icons.people_outline_rounded,
+                label: 'People',
+                selected: false,
+                onTap: openUserSearch,
               ),
-              Expanded(
-                child: _NavigationItem(
-                  icon: Icons.settings_outlined,
-                  label: 'Settings',
-                  selected: false,
-                  onTap: () async {
-                    await Navigator.of(context).push(
-                      MaterialPageRoute(
-                        builder: (context) => const SettingsScreen(),
-                      ),
-                    );
-                    if (mounted) {
-                      await loadConversations(showLoading: false);
-                    }
-                  },
-                ),
+            ),
+            Expanded(
+              child: _NavigationItem(
+                icon: Icons.call_outlined,
+                label: 'Calls',
+                selected: false,
+                onTap: () {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Text('Calls are coming in a future milestone.'),
+                    ),
+                  );
+                },
               ),
-            ],
-          ),
+            ),
+            Expanded(
+              child: _NavigationItem(
+                icon: Icons.settings_outlined,
+                label: 'Settings',
+                selected: false,
+                onTap: () async {
+                  await Navigator.of(context).push(
+                    MaterialPageRoute(
+                      builder: (context) => const SettingsScreen(),
+                    ),
+                  );
+                  if (mounted) {
+                    await loadConversations(showLoading: false);
+                  }
+                },
+              ),
+            ),
+          ],
         ),
       ),
     );

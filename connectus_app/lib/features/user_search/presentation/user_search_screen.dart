@@ -137,7 +137,7 @@ class _UserSearchScreenState extends State<UserSearchScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFF8F3E7),
+      backgroundColor: Colors.white,
       appBar: AppBar(
         title: const Text('Find people'),
         backgroundColor: Colors.transparent,
@@ -504,7 +504,7 @@ class _UserPreviewScreenState extends State<UserPreviewScreen> {
     final isOnline = widget.user['is_online'] as bool? ?? false;
 
     return Scaffold(
-      backgroundColor: const Color(0xFFF8F3E7),
+      backgroundColor: Colors.white,
       appBar: AppBar(
         title: const Text('Profile'),
         backgroundColor: Colors.transparent,

@@ -6,98 +6,176 @@ import 'register_screen.dart';
 class WelcomeScreen extends StatelessWidget {
   const WelcomeScreen({super.key});
 
-  void openRegisterScreen(BuildContext context) {
-    Navigator.push(
-      context,
-      MaterialPageRoute(builder: (context) => const RegisterScreen()),
-    );
-  }
-
-  void openLoginScreen(BuildContext context) {
-    Navigator.push(
-      context,
-      MaterialPageRoute(builder: (context) => const LoginScreen()),
-    );
-  }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Colors.white,
       body: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 24),
-          child: Column(
-            children: [
-              const Spacer(),
-              Container(
-                width: 110,
-                height: 110,
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(32),
-                  boxShadow: [
-                    BoxShadow(
-                      color: const Color(0xFF78A68A).withValues(alpha: 0.22),
-                      blurRadius: 24,
-                      offset: const Offset(0, 10),
-                    ),
-                  ],
-                ),
-                clipBehavior: Clip.antiAlias,
-                child: Image.asset(
-                  'assets/images/connectus_app_icon.png',
-                  fit: BoxFit.cover,
-                ),
-              ),
-              const SizedBox(height: 32),
-              const Text(
-                'ConnectUs',
-                style: TextStyle(
-                  fontSize: 36,
-                  fontWeight: FontWeight.w800,
-                  letterSpacing: -1,
-                ),
-              ),
-              const SizedBox(height: 12),
-              Text(
-                'Simple, fast and secure messaging\nfor the people who matter.',
-                textAlign: TextAlign.center,
-                style: TextStyle(
-                  fontSize: 17,
-                  height: 1.5,
-                  color: Colors.grey.shade600,
-                ),
-              ),
-              const Spacer(),
-              SizedBox(
-                width: double.infinity,
-                height: 56,
-                child: FilledButton(
-                  onPressed: () => openRegisterScreen(context),
-                  style: FilledButton.styleFrom(
-                    backgroundColor: const Color(0xFF6F927E),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(18),
+        child: Center(
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 480),
+            child: Column(
+              children: [
+                Expanded(
+                  flex: 6,
+                  child: ClipPath(
+                    clipper: const _OnboardingHeaderClipper(),
+                    child: Container(
+                      width: double.infinity,
+                      color: const Color(0xFFDDEEE3),
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Container(
+                            width: 142,
+                            height: 142,
+                            decoration: BoxDecoration(
+                              borderRadius: BorderRadius.circular(42),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: const Color(
+                                    0xFF6F927E,
+                                  ).withValues(alpha: 0.18),
+                                  blurRadius: 30,
+                                  offset: const Offset(0, 14),
+                                ),
+                              ],
+                            ),
+                            clipBehavior: Clip.antiAlias,
+                            child: Image.asset(
+                              'assets/images/connectus_app_icon.png',
+                              fit: BoxFit.cover,
+                            ),
+                          ),
+                          const SizedBox(height: 24),
+                          const Text(
+                            'ConnectUs',
+                            style: TextStyle(
+                              color: Color(0xFF25332C),
+                              fontSize: 28,
+                              fontWeight: FontWeight.w800,
+                              letterSpacing: -0.6,
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
                   ),
-                  child: const Text(
-                    'Get Started',
-                    style: TextStyle(fontSize: 17, fontWeight: FontWeight.w600),
+                ),
+                Expanded(
+                  flex: 5,
+                  child: Padding(
+                    padding: const EdgeInsets.fromLTRB(32, 20, 32, 24),
+                    child: Column(
+                      children: [
+                        const Text(
+                          'Welcome to ConnectUs!',
+                          textAlign: TextAlign.center,
+                          style: TextStyle(
+                            fontSize: 25,
+                            fontWeight: FontWeight.w800,
+                            letterSpacing: -0.4,
+                          ),
+                        ),
+                        const SizedBox(height: 10),
+                        Text(
+                          'Connect securely with the people who matter, '
+                          'wherever you are.',
+                          textAlign: TextAlign.center,
+                          style: TextStyle(
+                            height: 1.5,
+                            color: Colors.grey.shade600,
+                          ),
+                        ),
+                        const Spacer(),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Container(
+                              width: 22,
+                              height: 6,
+                              decoration: BoxDecoration(
+                                color: const Color(0xFF6F927E),
+                                borderRadius: BorderRadius.circular(99),
+                              ),
+                            ),
+                            const SizedBox(width: 6),
+                            _pageDot(),
+                            const SizedBox(width: 6),
+                            _pageDot(),
+                          ],
+                        ),
+                        const SizedBox(height: 24),
+                        SizedBox(
+                          width: double.infinity,
+                          height: 54,
+                          child: FilledButton(
+                            onPressed: () => Navigator.of(context).push(
+                              MaterialPageRoute(
+                                builder: (_) => const RegisterScreen(),
+                              ),
+                            ),
+                            style: FilledButton.styleFrom(
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(14),
+                              ),
+                            ),
+                            child: const Text(
+                              'Continue',
+                              style: TextStyle(fontWeight: FontWeight.w700),
+                            ),
+                          ),
+                        ),
+                        const SizedBox(height: 10),
+                        TextButton(
+                          onPressed: () => Navigator.of(context).push(
+                            MaterialPageRoute(
+                              builder: (_) => const LoginScreen(),
+                            ),
+                          ),
+                          child: const Text('I already have an account'),
+                        ),
+                      ],
+                    ),
                   ),
                 ),
-              ),
-              const SizedBox(height: 16),
-              TextButton(
-                onPressed: () => openLoginScreen(context),
-                child: const Text(
-                  'I already have an account',
-                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
-                ),
-              ),
-              const SizedBox(height: 24),
-            ],
+              ],
+            ),
           ),
         ),
       ),
     );
   }
+
+  static Widget _pageDot() {
+    return Container(
+      width: 6,
+      height: 6,
+      decoration: const BoxDecoration(
+        color: Color(0xFFE2E5E3),
+        shape: BoxShape.circle,
+      ),
+    );
+  }
+}
+
+class _OnboardingHeaderClipper extends CustomClipper<Path> {
+  const _OnboardingHeaderClipper();
+
+  @override
+  Path getClip(Size size) {
+    return Path()
+      ..lineTo(0, size.height * 0.83)
+      ..quadraticBezierTo(
+        size.width / 2,
+        size.height * 1.04,
+        size.width,
+        size.height * 0.83,
+      )
+      ..lineTo(size.width, 0)
+      ..close();
+  }
+
+  @override
+  bool shouldReclip(covariant CustomClipper<Path> oldClipper) => false;
 }
