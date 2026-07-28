@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:liquid_glass_widgets/liquid_glass_widgets.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
+import '../../../core/theme/app_theme_controller.dart';
+
 class SettingsScreen extends StatefulWidget {
   const SettingsScreen({super.key});
 
@@ -95,7 +97,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: AppBar(
         title: const Text('Settings'),
         backgroundColor: Colors.transparent,
@@ -164,6 +166,26 @@ class _SettingsScreenState extends State<SettingsScreen> {
                           ),
                         ),
                       ],
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  GlassCard(
+                    padding: EdgeInsets.zero,
+                    child: ValueListenableBuilder<ThemeMode>(
+                      valueListenable: AppThemeController.mode,
+                      builder: (context, mode, _) {
+                        return SwitchListTile(
+                          secondary: Icon(
+                            mode == ThemeMode.dark
+                                ? Icons.dark_mode_rounded
+                                : Icons.light_mode_rounded,
+                          ),
+                          title: const Text('Dark mode'),
+                          subtitle: const Text('Light mode is the default'),
+                          value: mode == ThemeMode.dark,
+                          onChanged: AppThemeController.setDark,
+                        );
+                      },
                     ),
                   ),
                   const SizedBox(height: 16),

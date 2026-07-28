@@ -407,7 +407,7 @@ class _ChatScreenState extends State<ChatScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: AppBar(
         elevation: 0,
         backgroundColor: Colors.transparent,
@@ -464,7 +464,7 @@ class _ChatScreenState extends State<ChatScreen> {
                             color: const Color(0xFF5FAF7B),
                             shape: BoxShape.circle,
                             border: Border.all(
-                              color: const Color(0xFFF8F3E7),
+                              color: Theme.of(context).scaffoldBackgroundColor,
                               width: 2,
                             ),
                           ),
@@ -840,8 +840,8 @@ class _MessageBubble extends StatelessWidget {
         padding: const EdgeInsets.fromLTRB(15, 11, 11, 7),
         decoration: BoxDecoration(
           color: isMine
-              ? const Color(0xFF6F927E)
-              : Colors.white.withValues(alpha: 0.90),
+              ? Theme.of(context).colorScheme.primary
+              : Theme.of(context).colorScheme.surfaceContainerHighest,
           borderRadius: BorderRadius.only(
             topLeft: const Radius.circular(20),
             topRight: const Radius.circular(20),
@@ -866,7 +866,9 @@ class _MessageBubble extends StatelessWidget {
                 style: TextStyle(
                   fontSize: 15.5,
                   height: 1.35,
-                  color: isMine ? Colors.white : Colors.black87,
+                  color: isMine
+                      ? Theme.of(context).colorScheme.onPrimary
+                      : Theme.of(context).colorScheme.onSurface,
                 ),
               ),
             ),
@@ -920,7 +922,7 @@ class _MessageComposer extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.fromLTRB(12, 8, 12, 12),
       decoration: BoxDecoration(
-        color: const Color(0xFFF8F3E7).withValues(alpha: 0.96),
+        color: Theme.of(context).colorScheme.surface.withValues(alpha: 0.96),
         boxShadow: [
           BoxShadow(
             color: Colors.black.withValues(alpha: 0.05),
@@ -958,7 +960,9 @@ class _MessageComposer extends StatelessWidget {
               decoration: InputDecoration(
                 hintText: 'Type a message...',
                 filled: true,
-                fillColor: Colors.white.withValues(alpha: 0.90),
+                fillColor: Theme.of(
+                  context,
+                ).colorScheme.surfaceContainerHighest,
                 contentPadding: const EdgeInsets.symmetric(
                   horizontal: 18,
                   vertical: 13,

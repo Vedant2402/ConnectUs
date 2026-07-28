@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:liquid_glass_widgets/liquid_glass_widgets.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
+import '../../../core/theme/app_theme_controller.dart';
 import '../../authentication/presentation/welcome_screen.dart';
 import '../../chat/presentation/chat_screen.dart';
 import '../../settings/presentation/settings_screen.dart';
@@ -31,10 +32,6 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
 
   String? get currentUserId {
     return Supabase.instance.client.auth.currentUser?.id;
-  }
-
-  String get userEmail {
-    return Supabase.instance.client.auth.currentUser?.email ?? 'ConnectUs user';
   }
 
   @override
@@ -558,7 +555,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       body: SafeArea(
         child: Column(
           children: [
@@ -570,15 +567,9 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                   onChanged: (value) =>
                       setState(() => conversationQuery = value.trim()),
                   decoration: InputDecoration(
-                    hintText: 'Search conversations',
+                    hintText: 'Ask ConnectUs or Search',
                     prefixIcon: const Icon(Icons.search_rounded, size: 21),
-                    filled: true,
-                    fillColor: const Color(0xFFF6F7F6),
                     contentPadding: const EdgeInsets.symmetric(vertical: 13),
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(15),
-                      borderSide: BorderSide.none,
-                    ),
                   ),
                 ),
               ),
@@ -587,7 +578,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                 child: ListView(
                   scrollDirection: Axis.horizontal,
                   padding: const EdgeInsets.symmetric(horizontal: 20),
-                  children: ['All', 'Unread', 'Online'].map((filter) {
+                  children: ['All', 'Unread', 'Favorites'].map((filter) {
                     final selected = conversationFilter == filter;
                     return Padding(
                       padding: const EdgeInsets.only(right: 9),
@@ -597,13 +588,13 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                         showCheckmark: false,
                         onSelected: (_) =>
                             setState(() => conversationFilter = filter),
-                        side: BorderSide(
-                          color: selected
-                              ? const Color(0xFF6F927E)
-                              : const Color(0xFFE1E5E2),
-                        ),
-                        backgroundColor: Colors.white,
-                        selectedColor: const Color(0xFFDDEEE3),
+                        side: BorderSide(color: Theme.of(context).dividerColor),
+                        backgroundColor: Theme.of(
+                          context,
+                        ).colorScheme.surfaceContainerHighest,
+                        selectedColor: Theme.of(
+                          context,
+                        ).colorScheme.primaryContainer,
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(12),
                         ),
@@ -628,90 +619,87 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
 
   Widget buildHeader() {
     return Padding(
-      padding: const EdgeInsets.fromLTRB(20, 18, 14, 10),
-      child: Row(
+      padding: const EdgeInsets.fromLTRB(20, 18, 14, 8),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Container(
-            width: 46,
-            height: 46,
-            decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              boxShadow: [
-                BoxShadow(
-                  color: const Color(0xFF78A68A).withValues(alpha: 0.18),
-                  blurRadius: 14,
-                  offset: const Offset(0, 6),
-                ),
-              ],
-            ),
-            clipBehavior: Clip.antiAlias,
-            child: Image.asset(
-              'assets/images/connectus_app_icon.png',
-              fit: BoxFit.cover,
-            ),
-          ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  'Hello 👋',
-                  style: TextStyle(
-                    fontSize: 12,
-                    color: Color(0xFF6F927E),
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-                Text(
-                  'Your conversations',
-                  style: TextStyle(fontSize: 17, fontWeight: FontWeight.w800),
-                ),
-              ],
-            ),
-          ),
-          IconButton(
-            tooltip: 'Notifications',
-            onPressed: () {},
-            style: IconButton.styleFrom(
-              backgroundColor: const Color(0xFFF5F6F5),
-            ),
-            icon: const Icon(Icons.notifications_none_rounded, size: 21),
-          ),
-          PopupMenuButton<String>(
-            tooltip: 'Account options',
-            onSelected: (value) {
-              if (value == 'logout') {
-                logout();
-              }
-            },
-            itemBuilder: (context) {
-              return [
-                PopupMenuItem<String>(
-                  enabled: false,
-                  child: SizedBox(
-                    width: 220,
-                    child: Text(
-                      userEmail,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
+          Row(
+            children: [
+              PopupMenuButton<String>(
+                tooltip: 'More options',
+                onSelected: (value) {
+                  if (value == 'theme') {
+                    AppThemeController.toggle();
+                  } else if (value == 'logout') {
+                    logout();
+                  }
+                },
+                itemBuilder: (_) => [
+                  PopupMenuItem(
+                    value: 'theme',
+                    child: Row(
+                      children: [
+                        Icon(
+                          AppThemeController.isDark
+                              ? Icons.light_mode_outlined
+                              : Icons.dark_mode_outlined,
+                        ),
+                        const SizedBox(width: 12),
+                        Text(
+                          AppThemeController.isDark
+                              ? 'Light mode'
+                              : 'Dark mode',
+                        ),
+                      ],
                     ),
                   ),
-                ),
-                const PopupMenuDivider(),
-                PopupMenuItem<String>(
-                  value: 'logout',
-                  child: Row(
-                    children: [
-                      const Icon(Icons.logout_rounded),
-                      const SizedBox(width: 12),
-                      Text(isLoggingOut ? 'Logging out...' : 'Log out'),
-                    ],
+                  const PopupMenuDivider(),
+                  PopupMenuItem(
+                    value: 'logout',
+                    child: Row(
+                      children: [
+                        const Icon(Icons.logout_rounded),
+                        const SizedBox(width: 12),
+                        Text(isLoggingOut ? 'Logging out…' : 'Log out'),
+                      ],
+                    ),
                   ),
+                ],
+                child: _HeaderCircle(
+                  icon: Icons.more_horiz_rounded,
+                  color: Theme.of(context).colorScheme.surfaceContainerHighest,
                 ),
-              ];
-            },
-            icon: const Icon(Icons.menu_rounded),
+              ),
+              const Spacer(),
+              _HeaderCircle(
+                icon: Icons.camera_alt_rounded,
+                color: Theme.of(context).colorScheme.surfaceContainerHighest,
+                onTap: () {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Text('Camera sharing is coming soon.'),
+                    ),
+                  );
+                },
+              ),
+              const SizedBox(width: 10),
+              _HeaderCircle(
+                icon: Icons.add_rounded,
+                color: Theme.of(context).colorScheme.primary,
+                foregroundColor: Theme.of(context).colorScheme.onPrimary,
+                onTap: openUserSearch,
+              ),
+            ],
+          ),
+          const SizedBox(height: 24),
+          const Text(
+            'Chats',
+            style: TextStyle(
+              fontSize: 36,
+              height: 1,
+              fontWeight: FontWeight.w800,
+              letterSpacing: -1,
+            ),
           ),
         ],
       ),
@@ -890,7 +878,8 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
       physics: const AlwaysScrollableScrollPhysics(),
       padding: const EdgeInsets.fromLTRB(20, 12, 20, 24),
       itemCount: visibleConversations.length,
-      separatorBuilder: (_, _) => const SizedBox(height: 12),
+      separatorBuilder: (_, _) =>
+          Divider(height: 1, indent: 88, color: Theme.of(context).dividerColor),
       itemBuilder: (context, index) {
         final conversation = visibleConversations[index];
 
@@ -930,31 +919,19 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
 
     final unreadCount = conversation['unread_count'] as int? ?? 0;
 
-    return Container(
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: const Color(0xFFE7E9E7)),
-        boxShadow: [
-          BoxShadow(
-            color: const Color(0xFF25332C).withValues(alpha: 0.035),
-            blurRadius: 16,
-            offset: const Offset(0, 6),
-          ),
-        ],
-      ),
+    return Material(
+      color: Colors.transparent,
       child: InkWell(
         onTap: () => openConversation(conversation),
-        borderRadius: BorderRadius.circular(16),
         child: Padding(
-          padding: const EdgeInsets.all(16),
+          padding: const EdgeInsets.symmetric(vertical: 13),
           child: Row(
             children: [
               Stack(
                 clipBehavior: Clip.none,
                 children: [
                   CircleAvatar(
-                    radius: 29,
+                    radius: 30,
                     backgroundColor: const Color(0xFFDDEEE3),
                     backgroundImage:
                         avatarUrl != null && avatarUrl.trim().isNotEmpty
@@ -982,7 +959,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                           color: const Color(0xFF5FAF7B),
                           shape: BoxShape.circle,
                           border: Border.all(
-                            color: const Color(0xFFF8F3E7),
+                            color: Theme.of(context).scaffoldBackgroundColor,
                             width: 2.5,
                           ),
                         ),
@@ -1067,9 +1044,9 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                       ),
                     )
                   else
-                    const Icon(
+                    Icon(
                       Icons.chevron_right_rounded,
-                      color: Colors.black45,
+                      color: Theme.of(context).colorScheme.outline,
                     ),
                 ],
               ),
@@ -1084,25 +1061,19 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
     return SafeArea(
       top: false,
       child: Container(
-        decoration: const BoxDecoration(
-          color: Colors.white,
-          border: Border(top: BorderSide(color: Color(0xFFE7E9E7))),
+        decoration: BoxDecoration(
+          color: Theme.of(context).colorScheme.surface.withValues(alpha: 0.96),
+          border: Border(
+            top: BorderSide(color: Theme.of(context).dividerColor),
+          ),
         ),
         padding: const EdgeInsets.fromLTRB(10, 6, 10, 7),
         child: Row(
           children: [
             Expanded(
               child: _NavigationItem(
-                icon: Icons.chat_bubble_rounded,
-                label: 'Chats',
-                selected: true,
-                onTap: loadConversations,
-              ),
-            ),
-            Expanded(
-              child: _NavigationItem(
-                icon: Icons.people_outline_rounded,
-                label: 'People',
+                icon: Icons.data_usage_rounded,
+                label: 'Updates',
                 selected: false,
                 onTap: openUserSearch,
               ),
@@ -1119,6 +1090,14 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                     ),
                   );
                 },
+              ),
+            ),
+            Expanded(
+              child: _NavigationItem(
+                icon: Icons.chat_bubble_rounded,
+                label: 'Chats',
+                selected: true,
+                onTap: loadConversations,
               ),
             ),
             Expanded(
@@ -1159,6 +1138,42 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
     if (difference.inDays == 1) return 'last seen yesterday';
 
     return 'last seen ${value.month}/${value.day}/${value.year}';
+  }
+}
+
+class _HeaderCircle extends StatelessWidget {
+  final IconData icon;
+  final Color color;
+  final Color? foregroundColor;
+  final VoidCallback? onTap;
+
+  const _HeaderCircle({
+    required this.icon,
+    required this.color,
+    this.foregroundColor,
+    this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return InkWell(
+      onTap: onTap,
+      customBorder: const CircleBorder(),
+      child: Container(
+        width: 46,
+        height: 46,
+        decoration: BoxDecoration(
+          color: color,
+          shape: BoxShape.circle,
+          border: Border.all(color: Theme.of(context).dividerColor),
+        ),
+        child: Icon(
+          icon,
+          size: 25,
+          color: foregroundColor ?? Theme.of(context).colorScheme.onSurface,
+        ),
+      ),
+    );
   }
 }
 
