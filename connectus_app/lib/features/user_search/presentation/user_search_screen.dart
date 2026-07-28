@@ -4,6 +4,8 @@ import 'package:flutter/material.dart';
 import 'package:liquid_glass_widgets/liquid_glass_widgets.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
+import '../../chat/presentation/chat_screen.dart';
+
 class UserSearchScreen extends StatefulWidget {
   const UserSearchScreen({super.key});
 
@@ -12,7 +14,7 @@ class UserSearchScreen extends StatefulWidget {
 }
 
 class _UserSearchScreenState extends State<UserSearchScreen> {
-  final searchController = TextEditingController();
+  final TextEditingController searchController = TextEditingController();
 
   Timer? debounceTimer;
 
@@ -34,6 +36,8 @@ class _UserSearchScreenState extends State<UserSearchScreen> {
     debounceTimer = Timer(const Duration(milliseconds: 450), () {
       searchUsers(value);
     });
+
+    setState(() {});
   }
 
   Future<void> searchUsers(String value) async {
@@ -114,6 +118,22 @@ class _UserSearchScreenState extends State<UserSearchScreen> {
     );
   }
 
+  String getAvatarLetter(String displayName, String username) {
+    final cleanedDisplayName = displayName.trim();
+
+    if (cleanedDisplayName.isNotEmpty) {
+      return cleanedDisplayName.substring(0, 1).toUpperCase();
+    }
+
+    final cleanedUsername = username.trim();
+
+    if (cleanedUsername.isNotEmpty) {
+      return cleanedUsername.substring(0, 1).toUpperCase();
+    }
+
+    return '?';
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -143,7 +163,6 @@ class _UserSearchScreenState extends State<UserSearchScreen> {
                           onPressed: () {
                             searchController.clear();
                             onSearchChanged('');
-                            setState(() {});
                           },
                           icon: const Icon(Icons.close_rounded),
                         ),
@@ -273,11 +292,11 @@ class _UserSearchScreenState extends State<UserSearchScreen> {
       itemBuilder: (context, index) {
         final user = users[index];
 
-        final username = user['username'] as String? ?? 'unknown';
+        final username = user['username']?.toString() ?? 'unknown';
 
-        final displayName = user['display_name'] as String? ?? username;
+        final displayName = user['display_name']?.toString() ?? username;
 
-        final avatarUrl = user['avatar_url'] as String?;
+        final avatarUrl = user['avatar_url']?.toString();
 
         final isOnline = user['is_online'] as bool? ?? false;
 
@@ -293,12 +312,13 @@ class _UserSearchScreenState extends State<UserSearchScreen> {
                   CircleAvatar(
                     radius: 27,
                     backgroundColor: const Color(0xFFE3E1FF),
-                    backgroundImage: avatarUrl != null && avatarUrl.isNotEmpty
+                    backgroundImage:
+                        avatarUrl != null && avatarUrl.trim().isNotEmpty
                         ? NetworkImage(avatarUrl)
                         : null,
-                    child: avatarUrl == null || avatarUrl.isEmpty
+                    child: avatarUrl == null || avatarUrl.trim().isEmpty
                         ? Text(
-                            displayName.substring(0, 1).toUpperCase(),
+                            getAvatarLetter(displayName, username),
                             style: const TextStyle(
                               fontSize: 20,
                               fontWeight: FontWeight.w700,
@@ -352,18 +372,136 @@ class _UserSearchScreenState extends State<UserSearchScreen> {
   }
 }
 
-class UserPreviewScreen extends StatelessWidget {
+class UserPreviewScreen extends StatefulWidget {
   final Map<String, dynamic> user;
 
   const UserPreviewScreen({super.key, required this.user});
 
   @override
+  State<UserPreviewScreen> createState() => _UserPreviewScreenState();
+}
+
+class _UserPreviewScreenState extends State<UserPreviewScreen> {
+  bool isOpeningChat = false;
+
+  Future<void> openConversation() async {
+    if (isOpeningChat) {
+      return;
+    }
+
+    final otherUserId = widget.user['id']?.toString();
+
+    if (otherUserId == null || otherUserId.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Unable to identify this user.'),
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+
+      return;
+    }
+
+    setState(() {
+      isOpeningChat = true;
+    });
+
+    try {
+      final result = await Supabase.instance.client.rpc(
+        'create_or_get_direct_conversation',
+        params: {'other_user_id': otherUserId},
+      );
+
+      final conversationId = result?.toString();
+
+      if (conversationId == null ||
+          conversationId.isEmpty ||
+          conversationId == 'null') {
+        throw Exception('Conversation ID was not returned.');
+      }
+
+      if (!mounted) {
+        return;
+      }
+
+      final username = widget.user['username']?.toString() ?? 'unknown';
+
+      final displayName = widget.user['display_name']?.toString() ?? username;
+
+      final avatarUrl = widget.user['avatar_url']?.toString();
+
+      final isOnline = widget.user['is_online'] as bool? ?? false;
+
+      Navigator.of(context).pushReplacement(
+        MaterialPageRoute(
+          builder: (context) => ChatScreen(
+            conversationId: conversationId,
+            otherUserId: otherUserId,
+            username: username,
+            displayName: displayName,
+            avatarUrl: avatarUrl,
+            isOnline: isOnline,
+          ),
+        ),
+      );
+    } on PostgrestException catch (error) {
+      if (!mounted) {
+        return;
+      }
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(error.message),
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+    } catch (error) {
+      if (!mounted) {
+        return;
+      }
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Unable to open the conversation: $error'),
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+    } finally {
+      if (mounted) {
+        setState(() {
+          isOpeningChat = false;
+        });
+      }
+    }
+  }
+
+  String getAvatarLetter(String displayName, String username) {
+    final cleanedDisplayName = displayName.trim();
+
+    if (cleanedDisplayName.isNotEmpty) {
+      return cleanedDisplayName.substring(0, 1).toUpperCase();
+    }
+
+    final cleanedUsername = username.trim();
+
+    if (cleanedUsername.isNotEmpty) {
+      return cleanedUsername.substring(0, 1).toUpperCase();
+    }
+
+    return '?';
+  }
+
+  @override
   Widget build(BuildContext context) {
-    final username = user['username'] as String? ?? 'unknown';
+    final username = widget.user['username']?.toString() ?? 'unknown';
 
-    final displayName = user['display_name'] as String? ?? username;
+    final displayName = widget.user['display_name']?.toString() ?? username;
 
-    final bio = user['bio'] as String?;
+    final bio = widget.user['bio']?.toString();
+
+    final avatarUrl = widget.user['avatar_url']?.toString();
+
+    final isOnline = widget.user['is_online'] as bool? ?? false;
 
     return Scaffold(
       backgroundColor: const Color(0xFFF3F1FF),
@@ -386,17 +524,45 @@ class UserPreviewScreen extends StatelessWidget {
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    CircleAvatar(
-                      radius: 48,
-                      backgroundColor: const Color(0xFFE3E1FF),
-                      child: Text(
-                        displayName.substring(0, 1).toUpperCase(),
-                        style: const TextStyle(
-                          fontSize: 34,
-                          fontWeight: FontWeight.w800,
-                          color: Color(0xFF5B5FEF),
+                    Stack(
+                      clipBehavior: Clip.none,
+                      children: [
+                        CircleAvatar(
+                          radius: 48,
+                          backgroundColor: const Color(0xFFE3E1FF),
+                          backgroundImage:
+                              avatarUrl != null && avatarUrl.trim().isNotEmpty
+                              ? NetworkImage(avatarUrl)
+                              : null,
+                          child: avatarUrl == null || avatarUrl.trim().isEmpty
+                              ? Text(
+                                  getAvatarLetter(displayName, username),
+                                  style: const TextStyle(
+                                    fontSize: 34,
+                                    fontWeight: FontWeight.w800,
+                                    color: Color(0xFF5B5FEF),
+                                  ),
+                                )
+                              : null,
                         ),
-                      ),
+                        if (isOnline)
+                          Positioned(
+                            right: 2,
+                            bottom: 2,
+                            child: Container(
+                              width: 17,
+                              height: 17,
+                              decoration: BoxDecoration(
+                                color: const Color(0xFF34C759),
+                                shape: BoxShape.circle,
+                                border: Border.all(
+                                  color: const Color(0xFFF3F1FF),
+                                  width: 3,
+                                ),
+                              ),
+                            ),
+                          ),
+                      ],
                     ),
                     const SizedBox(height: 22),
                     Text(
@@ -415,6 +581,16 @@ class UserPreviewScreen extends StatelessWidget {
                         color: Colors.grey.shade700,
                       ),
                     ),
+                    const SizedBox(height: 8),
+                    Text(
+                      isOnline ? 'Online' : 'ConnectUs user',
+                      style: TextStyle(
+                        color: isOnline
+                            ? const Color(0xFF2A9D55)
+                            : Colors.grey.shade600,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
                     if (bio != null && bio.trim().isNotEmpty) ...[
                       const SizedBox(height: 18),
                       Text(
@@ -428,21 +604,20 @@ class UserPreviewScreen extends StatelessWidget {
                       width: double.infinity,
                       height: 54,
                       child: FilledButton.icon(
-                        onPressed: () {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(
-                              content: Text(
-                                'Conversation creation '
-                                'will be added next.',
-                              ),
-                              behavior: SnackBarBehavior.floating,
-                            ),
-                          );
-                        },
-                        icon: const Icon(Icons.chat_bubble_rounded),
-                        label: const Text(
-                          'Message',
-                          style: TextStyle(
+                        onPressed: isOpeningChat ? null : openConversation,
+                        icon: isOpeningChat
+                            ? const SizedBox(
+                                width: 20,
+                                height: 20,
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 2.2,
+                                  color: Colors.white,
+                                ),
+                              )
+                            : const Icon(Icons.chat_bubble_rounded),
+                        label: Text(
+                          isOpeningChat ? 'Opening chat...' : 'Message',
+                          style: const TextStyle(
                             fontSize: 16,
                             fontWeight: FontWeight.w700,
                           ),
