@@ -603,13 +603,19 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
             width: 48,
             height: 48,
             decoration: BoxDecoration(
-              color: const Color(0xFF5B5FEF),
               borderRadius: BorderRadius.circular(16),
+              boxShadow: [
+                BoxShadow(
+                  color: const Color(0xFF78A68A).withValues(alpha: 0.18),
+                  blurRadius: 14,
+                  offset: const Offset(0, 6),
+                ),
+              ],
             ),
-            child: const Icon(
-              Icons.chat_bubble_rounded,
-              color: Colors.white,
-              size: 25,
+            clipBehavior: Clip.antiAlias,
+            child: Image.asset(
+              'assets/images/connectus_app_icon.png',
+              fit: BoxFit.cover,
             ),
           ),
           const SizedBox(width: 14),

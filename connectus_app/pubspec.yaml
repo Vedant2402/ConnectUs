@@ -27,3 +27,4 @@ flutter:
 
   assets:
     - .env
+    - assets/images/connectus_app_icon.png

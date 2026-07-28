@@ -33,13 +33,19 @@ class WelcomeScreen extends StatelessWidget {
                 width: 110,
                 height: 110,
                 decoration: BoxDecoration(
-                  color: const Color(0xFF5B5FEF),
                   borderRadius: BorderRadius.circular(32),
+                  boxShadow: [
+                    BoxShadow(
+                      color: const Color(0xFF78A68A).withValues(alpha: 0.22),
+                      blurRadius: 24,
+                      offset: const Offset(0, 10),
+                    ),
+                  ],
                 ),
-                child: const Icon(
-                  Icons.chat_bubble_rounded,
-                  size: 54,
-                  color: Colors.white,
+                clipBehavior: Clip.antiAlias,
+                child: Image.asset(
+                  'assets/images/connectus_app_icon.png',
+                  fit: BoxFit.cover,
                 ),
               ),
               const SizedBox(height: 32),
