@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-import '../features/authentication/presentation/welcome_screen.dart';
+import 'startup_screen.dart';
 
 class ConnectUsApp extends StatelessWidget {
   const ConnectUsApp({super.key});
@@ -14,7 +14,7 @@ class ConnectUsApp extends StatelessWidget {
         useMaterial3: true,
         colorScheme: ColorScheme.fromSeed(seedColor: const Color(0xFF5B5FEF)),
       ),
-      home: const WelcomeScreen(),
+      home: const StartupScreen(),
     );
   }
 }

@@ -1,9 +1,12 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:liquid_glass_widgets/liquid_glass_widgets.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../../authentication/presentation/welcome_screen.dart';
 import '../../chat/presentation/chat_screen.dart';
+import '../../settings/presentation/settings_screen.dart';
 import '../../user_search/presentation/user_search_screen.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -13,13 +16,16 @@ class HomeScreen extends StatefulWidget {
   State<HomeScreen> createState() => _HomeScreenState();
 }
 
-class _HomeScreenState extends State<HomeScreen> {
+class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
   bool isLoggingOut = false;
   bool isLoadingConversations = true;
+  String conversationQuery = '';
 
   String? conversationError;
 
   List<Map<String, dynamic>> conversations = [];
+  RealtimeChannel? homeChannel;
+  Timer? reloadTimer;
 
   String? get currentUserId {
     return Supabase.instance.client.auth.currentUser?.id;
@@ -32,8 +38,75 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   void initState() {
     super.initState();
-
+    WidgetsBinding.instance.addObserver(this);
+    setPresence(true);
+    subscribeToHomeUpdates();
     loadConversations();
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    reloadTimer?.cancel();
+    final channel = homeChannel;
+    if (channel != null) {
+      Supabase.instance.client.removeChannel(channel);
+    }
+    setPresence(false);
+    super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    setPresence(state == AppLifecycleState.resumed);
+  }
+
+  Future<void> setPresence(bool isOnline) async {
+    final userId = currentUserId;
+    if (userId == null) return;
+
+    try {
+      await Supabase.instance.client
+          .from('profiles')
+          .update({
+            'is_online': isOnline,
+            'last_seen_at': DateTime.now().toUtc().toIso8601String(),
+          })
+          .eq('id', userId);
+    } catch (error) {
+      debugPrint('Unable to update presence: $error');
+    }
+  }
+
+  void subscribeToHomeUpdates() {
+    homeChannel = Supabase.instance.client
+        .channel('home:${currentUserId ?? 'anonymous'}')
+        .onPostgresChanges(
+          event: PostgresChangeEvent.all,
+          schema: 'public',
+          table: 'messages',
+          callback: (_) => scheduleConversationReload(),
+        )
+        .onPostgresChanges(
+          event: PostgresChangeEvent.all,
+          schema: 'public',
+          table: 'conversation_members',
+          callback: (_) => scheduleConversationReload(),
+        )
+        .onPostgresChanges(
+          event: PostgresChangeEvent.all,
+          schema: 'public',
+          table: 'profiles',
+          callback: (_) => scheduleConversationReload(),
+        )
+        .subscribe();
+  }
+
+  void scheduleConversationReload() {
+    reloadTimer?.cancel();
+    reloadTimer = Timer(const Duration(milliseconds: 300), () {
+      if (mounted) loadConversations(showLoading: false);
+    });
   }
 
   Future<void> openUserSearch() async {
@@ -48,7 +121,7 @@ class _HomeScreenState extends State<HomeScreen> {
     await loadConversations();
   }
 
-  Future<void> loadConversations() async {
+  Future<void> loadConversations({bool showLoading = true}) async {
     final activeUserId = currentUserId;
 
     if (activeUserId == null) {
@@ -65,7 +138,7 @@ class _HomeScreenState extends State<HomeScreen> {
       return;
     }
 
-    if (mounted) {
+    if (mounted && showLoading) {
       setState(() {
         isLoadingConversations = true;
         conversationError = null;
@@ -159,6 +232,29 @@ class _HomeScreenState extends State<HomeScreen> {
 
       final messageRows = List<Map<String, dynamic>>.from(messageResponse);
 
+      final unreadCountResponse = await Supabase.instance.client.rpc(
+        'get_unread_conversation_counts',
+      );
+
+      final unreadCountRows = List<Map<String, dynamic>>.from(
+        unreadCountResponse as List,
+      );
+
+      final unreadCountsByConversation = <String, int>{};
+
+      for (final unreadRow in unreadCountRows) {
+        final conversationId = unreadRow['conversation_id']?.toString();
+        final unreadValue = unreadRow['unread_count'];
+
+        if (conversationId == null) {
+          continue;
+        }
+
+        unreadCountsByConversation[conversationId] = unreadValue is int
+            ? unreadValue
+            : int.tryParse(unreadValue?.toString() ?? '') ?? 0;
+      }
+
       final membershipsByConversation = <String, Map<String, dynamic>>{};
 
       for (final membership in otherMemberships) {
@@ -229,6 +325,7 @@ class _HomeScreenState extends State<HomeScreen> {
           'latest_message_time':
               latestMessage?['created_at'] ?? conversation['updated_at'],
           'has_messages': latestMessage != null,
+          'unread_count': unreadCountsByConversation[conversationId] ?? 0,
         });
       }
 
@@ -338,6 +435,7 @@ class _HomeScreenState extends State<HomeScreen> {
     });
 
     try {
+      await setPresence(false);
       await Supabase.instance.client.auth.signOut();
 
       if (!mounted) {
@@ -458,6 +556,25 @@ class _HomeScreenState extends State<HomeScreen> {
         child: Column(
           children: [
             buildHeader(),
+            if (conversations.isNotEmpty)
+              Padding(
+                padding: const EdgeInsets.fromLTRB(20, 4, 20, 8),
+                child: TextField(
+                  onChanged: (value) {
+                    setState(() => conversationQuery = value.trim());
+                  },
+                  decoration: InputDecoration(
+                    hintText: 'Search conversations',
+                    prefixIcon: const Icon(Icons.search_rounded),
+                    filled: true,
+                    fillColor: Colors.white.withValues(alpha: 0.72),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(20),
+                      borderSide: BorderSide.none,
+                    ),
+                  ),
+                ),
+              ),
             Expanded(
               child: RefreshIndicator(
                 onRefresh: loadConversations,
@@ -688,13 +805,39 @@ class _HomeScreenState extends State<HomeScreen> {
       );
     }
 
+    final normalizedQuery = conversationQuery.toLowerCase();
+    final visibleConversations = normalizedQuery.isEmpty
+        ? conversations
+        : conversations.where((conversation) {
+            final name = conversation['display_name']?.toString().toLowerCase();
+            final username = conversation['username']?.toString().toLowerCase();
+            final message = conversation['latest_message']
+                ?.toString()
+                .toLowerCase();
+            return (name?.contains(normalizedQuery) ?? false) ||
+                (username?.contains(normalizedQuery) ?? false) ||
+                (message?.contains(normalizedQuery) ?? false);
+          }).toList();
+
+    if (visibleConversations.isEmpty) {
+      return ListView(
+        physics: const AlwaysScrollableScrollPhysics(),
+        children: const [
+          SizedBox(height: 120),
+          Icon(Icons.search_off_rounded, size: 48, color: Color(0xFF5B5FEF)),
+          SizedBox(height: 12),
+          Center(child: Text('No matching conversations')),
+        ],
+      );
+    }
+
     return ListView.separated(
       physics: const AlwaysScrollableScrollPhysics(),
       padding: const EdgeInsets.fromLTRB(20, 12, 20, 24),
-      itemCount: conversations.length,
-      separatorBuilder: (_, __) => const SizedBox(height: 12),
+      itemCount: visibleConversations.length,
+      separatorBuilder: (_, _) => const SizedBox(height: 12),
       itemBuilder: (context, index) {
-        final conversation = conversations[index];
+        final conversation = visibleConversations[index];
 
         return buildConversationTile(conversation);
       },
@@ -723,6 +866,8 @@ class _HomeScreenState extends State<HomeScreen> {
         : isLatestMessageMine
         ? 'You: $latestMessage'
         : latestMessage;
+
+    final unreadCount = conversation['unread_count'] as int? ?? 0;
 
     return GlassCard(
       padding: EdgeInsets.zero,
@@ -812,10 +957,35 @@ class _HomeScreenState extends State<HomeScreen> {
                     ),
                   ),
                   const SizedBox(height: 8),
-                  const Icon(
-                    Icons.chevron_right_rounded,
-                    color: Colors.black45,
-                  ),
+                  if (unreadCount > 0)
+                    Container(
+                      constraints: const BoxConstraints(
+                        minWidth: 24,
+                        minHeight: 24,
+                      ),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 7,
+                        vertical: 3,
+                      ),
+                      decoration: const BoxDecoration(
+                        color: Color(0xFF5B5FEF),
+                        shape: BoxShape.circle,
+                      ),
+                      alignment: Alignment.center,
+                      child: Text(
+                        unreadCount > 99 ? '99+' : '$unreadCount',
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 11,
+                          fontWeight: FontWeight.w800,
+                        ),
+                      ),
+                    )
+                  else
+                    const Icon(
+                      Icons.chevron_right_rounded,
+                      color: Colors.black45,
+                    ),
                 ],
               ),
             ],
@@ -855,13 +1025,15 @@ class _HomeScreenState extends State<HomeScreen> {
                   icon: Icons.settings_outlined,
                   label: 'Settings',
                   selected: false,
-                  onTap: () {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(
-                        content: Text('Settings will be added later.'),
-                        behavior: SnackBarBehavior.floating,
+                  onTap: () async {
+                    await Navigator.of(context).push(
+                      MaterialPageRoute(
+                        builder: (context) => const SettingsScreen(),
                       ),
                     );
+                    if (mounted) {
+                      await loadConversations(showLoading: false);
+                    }
                   },
                 ),
               ),

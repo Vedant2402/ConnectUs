@@ -34,10 +34,17 @@ class _ChatScreenState extends State<ChatScreen> {
   late final Stream<List<Map<String, dynamic>>> messagesStream;
 
   late final Stream<List<Map<String, dynamic>>> receiptsStream;
+  late final RealtimeChannel typingChannel;
 
   final Set<String> markedAsReadMessageIds = {};
 
   bool isSending = false;
+  bool isOtherUserTyping = false;
+  bool isUpdatingLastRead = false;
+  bool hasPendingLastReadUpdate = false;
+  String? lastMarkedReadMessageId;
+  String? pendingLastReadMessageId;
+  Timer? typingTimer;
 
   String? get currentUserId {
     return Supabase.instance.client.auth.currentUser?.id;
@@ -57,13 +64,66 @@ class _ChatScreenState extends State<ChatScreen> {
         .from('message_receipts')
         .stream(primaryKey: ['message_id', 'user_id'])
         .eq('user_id', widget.otherUserId);
+
+    typingChannel = Supabase.instance.client
+        .channel('typing:${widget.conversationId}')
+        .onBroadcast(
+          event: 'typing',
+          callback: (payload) {
+            if (payload['user_id']?.toString() != widget.otherUserId ||
+                !mounted) {
+              return;
+            }
+            setState(() {
+              isOtherUserTyping = payload['is_typing'] == true;
+            });
+          },
+        )
+        .subscribe();
+
+    messageController.addListener(handleTypingChanged);
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      markConversationAsRead();
+    });
   }
 
   @override
   void dispose() {
+    typingTimer?.cancel();
+    messageController.removeListener(handleTypingChanged);
+    unawaited(
+      typingChannel.sendBroadcastMessage(
+        event: 'typing',
+        payload: {'user_id': currentUserId, 'is_typing': false},
+      ),
+    );
+    Supabase.instance.client.removeChannel(typingChannel);
     messageController.dispose();
     scrollController.dispose();
     super.dispose();
+  }
+
+  void handleTypingChanged() {
+    final isTyping = messageController.text.trim().isNotEmpty;
+    unawaited(
+      typingChannel.sendBroadcastMessage(
+        event: 'typing',
+        payload: {'user_id': currentUserId, 'is_typing': isTyping},
+      ),
+    );
+
+    typingTimer?.cancel();
+    if (isTyping) {
+      typingTimer = Timer(const Duration(milliseconds: 1400), () {
+        unawaited(
+          typingChannel.sendBroadcastMessage(
+            event: 'typing',
+            payload: {'user_id': currentUserId, 'is_typing': false},
+          ),
+        );
+      });
+    }
   }
 
   Future<void> sendMessage() async {
@@ -185,6 +245,51 @@ class _ChatScreenState extends State<ChatScreen> {
     }
   }
 
+  Future<void> markConversationAsRead({String? newestIncomingMessageId}) async {
+    if (newestIncomingMessageId != null) {
+      if (newestIncomingMessageId.isEmpty ||
+          newestIncomingMessageId == lastMarkedReadMessageId) {
+        return;
+      }
+
+      pendingLastReadMessageId = newestIncomingMessageId;
+    }
+
+    hasPendingLastReadUpdate = true;
+
+    if (isUpdatingLastRead) {
+      return;
+    }
+
+    isUpdatingLastRead = true;
+
+    try {
+      while (hasPendingLastReadUpdate) {
+        hasPendingLastReadUpdate = false;
+        final messageIdBeingMarked = pendingLastReadMessageId;
+
+        try {
+          await Supabase.instance.client.rpc(
+            'mark_conversation_as_read',
+            params: {'requested_conversation_id': widget.conversationId},
+          );
+
+          if (messageIdBeingMarked != null) {
+            lastMarkedReadMessageId = messageIdBeingMarked;
+          }
+        } on PostgrestException catch (error) {
+          debugPrint(
+            'Unable to update the last-read message: ${error.message}',
+          );
+        } catch (error) {
+          debugPrint('Unable to update the last-read message: $error');
+        }
+      }
+    } finally {
+      isUpdatingLastRead = false;
+    }
+  }
+
   void scrollToBottom() {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!scrollController.hasClients) {
@@ -222,6 +327,26 @@ class _ChatScreenState extends State<ChatScreen> {
         : hour;
 
     return '$displayHour:$minute $period';
+  }
+
+  DateTime? parseMessageDate(dynamic value) {
+    return DateTime.tryParse(value?.toString() ?? '')?.toLocal();
+  }
+
+  bool isSameDay(DateTime first, DateTime second) {
+    return first.year == second.year &&
+        first.month == second.month &&
+        first.day == second.day;
+  }
+
+  String formatDateLabel(DateTime date) {
+    final now = DateTime.now();
+    final today = DateTime(now.year, now.month, now.day);
+    final day = DateTime(date.year, date.month, date.day);
+    final difference = today.difference(day).inDays;
+    if (difference == 0) return 'Today';
+    if (difference == 1) return 'Yesterday';
+    return '${date.month}/${date.day}/${date.year}';
   }
 
   String getAvatarLetter() {
@@ -401,6 +526,27 @@ class _ChatScreenState extends State<ChatScreen> {
                       WidgetsBinding.instance.addPostFrameCallback((_) {
                         markIncomingMessagesAsRead(messages);
 
+                        final activeUserId = currentUserId;
+                        String? newestIncomingMessageId;
+
+                        if (activeUserId != null) {
+                          for (final message in messages.reversed) {
+                            if (message['sender_id']?.toString() ==
+                                activeUserId) {
+                              continue;
+                            }
+
+                            newestIncomingMessageId = message['id']?.toString();
+                            break;
+                          }
+                        }
+
+                        if (newestIncomingMessageId != null) {
+                          markConversationAsRead(
+                            newestIncomingMessageId: newestIncomingMessageId,
+                          );
+                        }
+
                         scrollToBottom();
                       });
 
@@ -427,12 +573,41 @@ class _ChatScreenState extends State<ChatScreen> {
 
                           final readAt = receipt?['read_at'];
 
-                          return _MessageBubble(
-                            content: content,
-                            time: formatMessageTime(createdAt),
-                            isMine: isMine,
-                            isDelivered: deliveredAt != null,
-                            isRead: readAt != null,
+                          final messageDate = parseMessageDate(createdAt);
+                          final previousMessage = index > 0
+                              ? messages[index - 1]
+                              : null;
+                          final previousDate = parseMessageDate(
+                            previousMessage?['created_at'],
+                          );
+                          final showDate =
+                              messageDate != null &&
+                              (previousDate == null ||
+                                  !isSameDay(messageDate, previousDate));
+                          final previousSender = previousMessage?['sender_id']
+                              ?.toString();
+                          final isGrouped =
+                              previousSender == senderId &&
+                              messageDate != null &&
+                              previousDate != null &&
+                              messageDate.difference(previousDate).inMinutes <
+                                  5;
+
+                          return Column(
+                            children: [
+                              if (showDate)
+                                _DateSeparator(
+                                  label: formatDateLabel(messageDate),
+                                ),
+                              _MessageBubble(
+                                content: content,
+                                time: formatMessageTime(createdAt),
+                                isMine: isMine,
+                                isDelivered: deliveredAt != null,
+                                isRead: readAt != null,
+                                isGrouped: isGrouped,
+                              ),
+                            ],
                           );
                         },
                       );
@@ -441,12 +616,62 @@ class _ChatScreenState extends State<ChatScreen> {
                 },
               ),
             ),
+            AnimatedSwitcher(
+              duration: const Duration(milliseconds: 180),
+              child: isOtherUserTyping
+                  ? Padding(
+                      key: const ValueKey('typing'),
+                      padding: const EdgeInsets.fromLTRB(20, 4, 20, 6),
+                      child: Align(
+                        alignment: Alignment.centerLeft,
+                        child: Text(
+                          '${widget.displayName} is typing…',
+                          style: TextStyle(
+                            color: Colors.grey.shade600,
+                            fontSize: 13,
+                            fontStyle: FontStyle.italic,
+                          ),
+                        ),
+                      ),
+                    )
+                  : const SizedBox.shrink(key: ValueKey('not-typing')),
+            ),
             _MessageComposer(
               controller: messageController,
               isSending: isSending,
               onSend: sendMessage,
             ),
           ],
+        ),
+      ),
+    );
+  }
+}
+
+class _DateSeparator extends StatelessWidget {
+  final String label;
+
+  const _DateSeparator({required this.label});
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 14),
+      child: Center(
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+          decoration: BoxDecoration(
+            color: Colors.white.withValues(alpha: 0.72),
+            borderRadius: BorderRadius.circular(14),
+          ),
+          child: Text(
+            label,
+            style: TextStyle(
+              color: Colors.grey.shade700,
+              fontSize: 12,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
         ),
       ),
     );
@@ -549,6 +774,7 @@ class _MessageBubble extends StatelessWidget {
   final bool isMine;
   final bool isDelivered;
   final bool isRead;
+  final bool isGrouped;
 
   const _MessageBubble({
     required this.content,
@@ -556,6 +782,7 @@ class _MessageBubble extends StatelessWidget {
     required this.isMine,
     required this.isDelivered,
     required this.isRead,
+    required this.isGrouped,
   });
 
   @override
@@ -568,7 +795,7 @@ class _MessageBubble extends StatelessWidget {
         constraints: BoxConstraints(
           maxWidth: MediaQuery.sizeOf(context).width * 0.76,
         ),
-        margin: const EdgeInsets.only(bottom: 9),
+        margin: EdgeInsets.only(bottom: isGrouped ? 3 : 9),
         padding: const EdgeInsets.fromLTRB(15, 11, 11, 7),
         decoration: BoxDecoration(
           color: isMine
