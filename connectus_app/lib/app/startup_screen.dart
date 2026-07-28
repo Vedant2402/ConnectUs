@@ -40,9 +40,13 @@ class _StartupScreenState extends State<StartupScreen> {
     hasNavigated = true;
     fallbackTimer?.cancel();
 
-    Navigator.of(context).pushReplacement(
-      MaterialPageRoute(builder: (_) => destination),
-    );
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+
+      Navigator.of(context).pushReplacement(
+        MaterialPageRoute(builder: (_) => destination),
+      );
+    });
   }
 
   Future<void> restoreSession() async {
