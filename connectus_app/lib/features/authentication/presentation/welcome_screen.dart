@@ -14,132 +14,144 @@ class WelcomeScreen extends StatelessWidget {
         child: Center(
           child: ConstrainedBox(
             constraints: const BoxConstraints(maxWidth: 480),
-            child: Column(
-              children: [
-                Expanded(
-                  flex: 6,
-                  child: ClipPath(
-                    clipper: const _OnboardingHeaderClipper(),
-                    child: Container(
-                      width: double.infinity,
-                      color: const Color(0xFFDDEEE3),
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Container(
-                            width: 142,
-                            height: 142,
-                            decoration: BoxDecoration(
-                              borderRadius: BorderRadius.circular(42),
-                              boxShadow: [
-                                BoxShadow(
-                                  color: const Color(
-                                    0xFF6F927E,
-                                  ).withValues(alpha: 0.18),
-                                  blurRadius: 30,
-                                  offset: const Offset(0, 14),
+            child: LayoutBuilder(
+              builder: (context, constraints) {
+                final isCompact = constraints.maxHeight < 700;
+
+                return Column(
+                  children: [
+                    Expanded(
+                      flex: isCompact ? 5 : 6,
+                      child: ClipPath(
+                        clipper: const _OnboardingHeaderClipper(),
+                        child: Container(
+                          width: double.infinity,
+                          color: const Color(0xFFDDEEE3),
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Container(
+                                width: isCompact ? 92 : 142,
+                                height: isCompact ? 92 : 142,
+                                decoration: BoxDecoration(
+                                  borderRadius: BorderRadius.circular(42),
+                                  boxShadow: [
+                                    BoxShadow(
+                                      color: const Color(
+                                        0xFF6F927E,
+                                      ).withValues(alpha: 0.18),
+                                      blurRadius: 30,
+                                      offset: const Offset(0, 14),
+                                    ),
+                                  ],
                                 ),
-                              ],
-                            ),
-                            clipBehavior: Clip.antiAlias,
-                            child: Image.asset(
-                              'assets/images/connectus_app_icon.png',
-                              fit: BoxFit.cover,
-                            ),
+                                clipBehavior: Clip.antiAlias,
+                                child: Image.asset(
+                                  'assets/images/connectus_app_icon.png',
+                                  fit: BoxFit.cover,
+                                ),
+                              ),
+                              SizedBox(height: isCompact ? 12 : 24),
+                              Text(
+                                'ConnectUs',
+                                style: const TextStyle(
+                                  color: Color(0xFF25332C),
+                                  fontSize: 28,
+                                  fontWeight: FontWeight.w800,
+                                  letterSpacing: -0.6,
+                                ).copyWith(fontSize: isCompact ? 23 : 28),
+                              ),
+                            ],
                           ),
-                          const SizedBox(height: 24),
-                          const Text(
-                            'ConnectUs',
-                            style: TextStyle(
-                              color: Color(0xFF25332C),
-                              fontSize: 28,
-                              fontWeight: FontWeight.w800,
-                              letterSpacing: -0.6,
-                            ),
-                          ),
-                        ],
+                        ),
                       ),
                     ),
-                  ),
-                ),
-                Expanded(
-                  flex: 5,
-                  child: Padding(
-                    padding: const EdgeInsets.fromLTRB(32, 20, 32, 24),
-                    child: Column(
-                      children: [
-                        const Text(
-                          'Welcome to ConnectUs!',
-                          textAlign: TextAlign.center,
-                          style: TextStyle(
-                            fontSize: 25,
-                            fontWeight: FontWeight.w800,
-                            letterSpacing: -0.4,
-                          ),
+                    Expanded(
+                      flex: isCompact ? 6 : 5,
+                      child: Padding(
+                        padding: EdgeInsets.fromLTRB(
+                          32,
+                          isCompact ? 12 : 20,
+                          32,
+                          isCompact ? 12 : 24,
                         ),
-                        const SizedBox(height: 10),
-                        Text(
-                          'Connect securely with the people who matter, '
-                          'wherever you are.',
-                          textAlign: TextAlign.center,
-                          style: TextStyle(
-                            height: 1.5,
-                            color: Colors.grey.shade600,
-                          ),
-                        ),
-                        const Spacer(),
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
+                        child: Column(
                           children: [
-                            Container(
-                              width: 22,
-                              height: 6,
-                              decoration: BoxDecoration(
-                                color: const Color(0xFF6F927E),
-                                borderRadius: BorderRadius.circular(99),
+                            Text(
+                              'Welcome to ConnectUs!',
+                              textAlign: TextAlign.center,
+                              style: const TextStyle(
+                                fontSize: 25,
+                                fontWeight: FontWeight.w800,
+                                letterSpacing: -0.4,
                               ),
                             ),
-                            const SizedBox(width: 6),
-                            _pageDot(),
-                            const SizedBox(width: 6),
-                            _pageDot(),
+                            const SizedBox(height: 10),
+                            Text(
+                              'Connect securely with the people who matter, '
+                              'wherever you are.',
+                              textAlign: TextAlign.center,
+                              style: TextStyle(
+                                height: 1.5,
+                                color: Colors.grey.shade600,
+                              ),
+                            ),
+                            if (!isCompact) const Spacer(),
+                            if (isCompact) const SizedBox(height: 12),
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Container(
+                                  width: 22,
+                                  height: 6,
+                                  decoration: BoxDecoration(
+                                    color: const Color(0xFF6F927E),
+                                    borderRadius: BorderRadius.circular(99),
+                                  ),
+                                ),
+                                const SizedBox(width: 6),
+                                _pageDot(),
+                                const SizedBox(width: 6),
+                                _pageDot(),
+                              ],
+                            ),
+                            SizedBox(height: isCompact ? 12 : 24),
+                            SizedBox(
+                              width: double.infinity,
+                              height: 54,
+                              child: FilledButton(
+                                onPressed: () => Navigator.of(context).push(
+                                  MaterialPageRoute(
+                                    builder: (_) => const RegisterScreen(),
+                                  ),
+                                ),
+                                style: FilledButton.styleFrom(
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(14),
+                                  ),
+                                ),
+                                child: const Text(
+                                  'Continue',
+                                  style: TextStyle(fontWeight: FontWeight.w700),
+                                ),
+                              ),
+                            ),
+                            SizedBox(height: isCompact ? 2 : 10),
+                            TextButton(
+                              onPressed: () => Navigator.of(context).push(
+                                MaterialPageRoute(
+                                  builder: (_) => const LoginScreen(),
+                                ),
+                              ),
+                              child: const Text('I already have an account'),
+                            ),
                           ],
                         ),
-                        const SizedBox(height: 24),
-                        SizedBox(
-                          width: double.infinity,
-                          height: 54,
-                          child: FilledButton(
-                            onPressed: () => Navigator.of(context).push(
-                              MaterialPageRoute(
-                                builder: (_) => const RegisterScreen(),
-                              ),
-                            ),
-                            style: FilledButton.styleFrom(
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(14),
-                              ),
-                            ),
-                            child: const Text(
-                              'Continue',
-                              style: TextStyle(fontWeight: FontWeight.w700),
-                            ),
-                          ),
-                        ),
-                        const SizedBox(height: 10),
-                        TextButton(
-                          onPressed: () => Navigator.of(context).push(
-                            MaterialPageRoute(
-                              builder: (_) => const LoginScreen(),
-                            ),
-                          ),
-                          child: const Text('I already have an account'),
-                        ),
-                      ],
+                      ),
                     ),
-                  ),
-                ),
-              ],
+                  ],
+                );
+              },
             ),
           ),
         ),

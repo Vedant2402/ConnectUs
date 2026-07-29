@@ -176,14 +176,14 @@ The project uses a single Flutter codebase for Android, iOS, and web-based devel
 
 - [ ] Functional status updates
 - [ ] Voice and video calling
-- [ ] Optimistic message sending
-- [ ] Message retry handling
-- [ ] Better loading placeholders
+- [x] Optimistic message sending
+- [x] Message retry handling
+- [x] Better loading placeholders
 - [ ] Additional animations and motion polish
 
 ### Future Work
 
-- [ ] Password reset
+- [x] Password reset
 - [ ] Push notifications
 - [ ] Message pagination
 - [ ] Local message caching
@@ -797,7 +797,7 @@ nothing to commit, working tree clean
 - [x] Email login
 - [x] Secure session support
 - [x] Logout
-- [ ] Password reset
+- [x] Password reset
 
 ### Milestone 3 — Identity
 
@@ -830,8 +830,8 @@ nothing to commit, working tree clean
 - [x] Last-read tracking
 - [ ] Message pagination
 - [ ] Local message caching
-- [ ] Retry handling
-- [ ] Optimistic updates
+- [x] Retry handling
+- [x] Optimistic updates
 
 ### Milestone 6 — Presence and Profiles
 
@@ -848,11 +848,11 @@ nothing to commit, working tree clean
 - [x] Lightweight screen transitions
 - [x] Empty, loading, and error states
 - [ ] Message-entry animations
-- [ ] Loading skeletons
-- [ ] Haptic feedback
+- [x] Loading skeletons
+- [x] Haptic feedback
 - [x] Dark mode
-- [ ] Accessibility improvements
-- [ ] Mobile layout testing
+- [x] Accessibility improvements
+- [x] Mobile layout testing
 
 ### Milestone 8 — Release Preparation
 
@@ -861,9 +861,9 @@ nothing to commit, working tree clean
 - [ ] Integration testing
 - [ ] Signed Android build
 - [ ] iOS TestFlight build
-- [ ] GitHub Actions
-- [ ] Production documentation
-- [ ] Security review
+- [x] GitHub Actions
+- [x] Production documentation
+- [x] Security review
 
 ---
 

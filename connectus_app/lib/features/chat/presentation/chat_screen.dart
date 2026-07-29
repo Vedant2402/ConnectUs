@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:liquid_glass_widgets/liquid_glass_widgets.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
@@ -38,6 +39,7 @@ class _ChatScreenState extends State<ChatScreen> {
   late final RealtimeChannel typingChannel;
 
   final Set<String> markedAsReadMessageIds = {};
+  final List<_PendingMessage> pendingMessages = [];
 
   bool isSending = false;
   bool isOtherUserTyping = false;
@@ -132,19 +134,40 @@ class _ChatScreenState extends State<ChatScreen> {
     }
   }
 
-  Future<void> sendMessage() async {
-    final message = messageController.text.trim();
+  Future<void> sendMessage({String? retryId, String? retryContent}) async {
+    final message = retryContent ?? messageController.text.trim();
     final senderId = currentUserId;
 
     if (message.isEmpty || senderId == null || isSending) {
       return;
     }
 
+    final pendingId =
+        retryId ?? DateTime.now().microsecondsSinceEpoch.toString();
+
     setState(() {
       isSending = true;
+      if (retryId == null) {
+        pendingMessages.add(
+          _PendingMessage(
+            id: pendingId,
+            content: message,
+            createdAt: DateTime.now(),
+          ),
+        );
+        messageController.clear();
+      } else {
+        final index = pendingMessages.indexWhere(
+          (pending) => pending.id == pendingId,
+        );
+        if (index >= 0) {
+          pendingMessages[index] = pendingMessages[index].copyWith(
+            failed: false,
+          );
+        }
+      }
     });
-
-    messageController.clear();
+    scrollToBottom();
 
     try {
       await Supabase.instance.client.from('messages').insert({
@@ -154,30 +177,52 @@ class _ChatScreenState extends State<ChatScreen> {
         'message_type': 'text',
       });
 
+      if (mounted) {
+        setState(() {
+          pendingMessages.removeWhere((pending) => pending.id == pendingId);
+        });
+      }
+      unawaited(HapticFeedback.lightImpact());
       scrollToBottom();
     } on PostgrestException catch (error) {
-      messageController.text = message;
-
       if (!mounted) {
         return;
       }
 
+      setState(() {
+        final index = pendingMessages.indexWhere(
+          (pending) => pending.id == pendingId,
+        );
+        if (index >= 0) {
+          pendingMessages[index] = pendingMessages[index].copyWith(
+            failed: true,
+          );
+        }
+      });
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text(error.message),
+          content: Text('${error.message} Tap the failed message to retry.'),
           behavior: SnackBarBehavior.floating,
         ),
       );
     } catch (_) {
-      messageController.text = message;
-
       if (!mounted) {
         return;
       }
 
+      setState(() {
+        final index = pendingMessages.indexWhere(
+          (pending) => pending.id == pendingId,
+        );
+        if (index >= 0) {
+          pendingMessages[index] = pendingMessages[index].copyWith(
+            failed: true,
+          );
+        }
+      });
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text('Unable to send the message. Please try again.'),
+          content: Text('Unable to send. Tap the failed message to retry.'),
           behavior: SnackBarBehavior.floating,
         ),
       );
@@ -595,7 +640,7 @@ class _ChatScreenState extends State<ChatScreen> {
 
                       final messages = messageSnapshot.data ?? [];
 
-                      if (messages.isEmpty) {
+                      if (messages.isEmpty && pendingMessages.isEmpty) {
                         return _EmptyChatState(displayName: widget.displayName);
                       }
 
@@ -629,8 +674,32 @@ class _ChatScreenState extends State<ChatScreen> {
                       return ListView.builder(
                         controller: scrollController,
                         padding: const EdgeInsets.fromLTRB(12, 8, 12, 14),
-                        itemCount: messages.length,
+                        itemCount: messages.length + pendingMessages.length,
                         itemBuilder: (context, index) {
+                          if (index >= messages.length) {
+                            final pending =
+                                pendingMessages[index - messages.length];
+
+                            return _MessageBubble(
+                              content: pending.content,
+                              time: formatMessageTime(
+                                pending.createdAt.toIso8601String(),
+                              ),
+                              isMine: true,
+                              isDelivered: false,
+                              isRead: false,
+                              isGrouped: index > 0,
+                              isPending: !pending.failed,
+                              hasFailed: pending.failed,
+                              onRetry: pending.failed
+                                  ? () => sendMessage(
+                                      retryId: pending.id,
+                                      retryContent: pending.content,
+                                    )
+                                  : null,
+                            );
+                          }
+
                           final message = messages[index];
 
                           final messageId = message['id']?.toString() ?? '';
@@ -682,6 +751,8 @@ class _ChatScreenState extends State<ChatScreen> {
                                 isDelivered: deliveredAt != null,
                                 isRead: readAt != null,
                                 isGrouped: isGrouped,
+                                isPending: false,
+                                hasFailed: false,
                               ),
                             ],
                           );
@@ -878,6 +949,9 @@ class _MessageBubble extends StatelessWidget {
   final bool isDelivered;
   final bool isRead;
   final bool isGrouped;
+  final bool isPending;
+  final bool hasFailed;
+  final VoidCallback? onRetry;
 
   const _MessageBubble({
     required this.content,
@@ -886,94 +960,134 @@ class _MessageBubble extends StatelessWidget {
     required this.isDelivered,
     required this.isRead,
     required this.isGrouped,
+    required this.isPending,
+    required this.hasFailed,
+    this.onRetry,
   });
 
   @override
   Widget build(BuildContext context) {
     return Align(
       alignment: isMine ? Alignment.centerRight : Alignment.centerLeft,
-      child: IntrinsicWidth(
-        child: AnimatedContainer(
-          duration: const Duration(milliseconds: 220),
-          curve: Curves.easeOutCubic,
-          constraints: BoxConstraints(
-            maxWidth: MediaQuery.sizeOf(context).width * 0.76,
-          ),
-          margin: EdgeInsets.only(bottom: isGrouped ? 2 : 6),
-          padding: const EdgeInsets.fromLTRB(14, 9, 10, 6),
-          decoration: BoxDecoration(
-            color: isMine
-                ? (Theme.of(context).brightness == Brightness.dark
-                      ? const Color(0xFF436B56)
-                      : const Color(0xFF668D77))
-                : (Theme.of(context).brightness == Brightness.dark
-                      ? const Color(0xFF2C302E)
-                      : const Color(0xFFE5E9E6)),
-            border: Border.all(
-              color: isMine
-                  ? const Color(0xFF527762)
-                  : Theme.of(context).dividerColor,
-            ),
-            borderRadius: BorderRadius.only(
-              topLeft: const Radius.circular(20),
-              topRight: const Radius.circular(20),
-              bottomLeft: Radius.circular(isMine ? 20 : 5),
-              bottomRight: Radius.circular(isMine ? 5 : 20),
-            ),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withValues(alpha: 0.06),
-                blurRadius: 14,
-                offset: const Offset(0, 5),
+      child: Semantics(
+        button: hasFailed,
+        label: hasFailed ? 'Message failed. Tap to retry.' : null,
+        child: InkWell(
+          onTap: onRetry,
+          borderRadius: BorderRadius.circular(20),
+          child: IntrinsicWidth(
+            child: AnimatedContainer(
+              duration: const Duration(milliseconds: 220),
+              curve: Curves.easeOutCubic,
+              constraints: BoxConstraints(
+                maxWidth: MediaQuery.sizeOf(context).width * 0.76,
               ),
-            ],
-          ),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              Text(
-                content,
-                style: TextStyle(
-                  fontSize: 15.5,
-                  height: 1.35,
+              margin: EdgeInsets.only(bottom: isGrouped ? 2 : 6),
+              padding: const EdgeInsets.fromLTRB(14, 9, 10, 6),
+              decoration: BoxDecoration(
+                color: isMine
+                    ? (Theme.of(context).brightness == Brightness.dark
+                          ? const Color(0xFF436B56)
+                          : const Color(0xFF668D77))
+                    : (Theme.of(context).brightness == Brightness.dark
+                          ? const Color(0xFF2C302E)
+                          : const Color(0xFFE5E9E6)),
+                border: Border.all(
                   color: isMine
-                      ? Theme.of(context).colorScheme.onPrimary
-                      : Theme.of(context).colorScheme.onSurface,
+                      ? const Color(0xFF527762)
+                      : Theme.of(context).dividerColor,
                 ),
-              ),
-              const SizedBox(height: 4),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.end,
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Text(
-                    time,
-                    style: TextStyle(
-                      fontSize: 10.5,
-                      color: isMine
-                          ? Colors.white.withValues(alpha: 0.72)
-                          : Colors.grey.shade600,
-                    ),
+                borderRadius: BorderRadius.only(
+                  topLeft: const Radius.circular(20),
+                  topRight: const Radius.circular(20),
+                  bottomLeft: Radius.circular(isMine ? 20 : 5),
+                  bottomRight: Radius.circular(isMine ? 5 : 20),
+                ),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withValues(alpha: 0.06),
+                    blurRadius: 14,
+                    offset: const Offset(0, 5),
                   ),
-                  if (isMine) ...[
-                    const SizedBox(width: 4),
-                    Icon(
-                      isDelivered || isRead
-                          ? Icons.done_all_rounded
-                          : Icons.done_rounded,
-                      size: 15,
-                      color: isRead
-                          ? const Color(0xFFA9D9C0)
-                          : Colors.white.withValues(alpha: 0.78),
-                    ),
-                  ],
                 ],
               ),
-            ],
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  Text(
+                    content,
+                    style: TextStyle(
+                      fontSize: 15.5,
+                      height: 1.35,
+                      color: isMine
+                          ? Theme.of(context).colorScheme.onPrimary
+                          : Theme.of(context).colorScheme.onSurface,
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.end,
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(
+                        time,
+                        style: TextStyle(
+                          fontSize: 10.5,
+                          color: isMine
+                              ? Colors.white.withValues(alpha: 0.72)
+                              : Colors.grey.shade600,
+                        ),
+                      ),
+                      if (isMine) ...[
+                        const SizedBox(width: 4),
+                        Icon(
+                          hasFailed
+                              ? Icons.error_outline_rounded
+                              : isPending
+                              ? Icons.schedule_rounded
+                              : isDelivered || isRead
+                              ? Icons.done_all_rounded
+                              : Icons.done_rounded,
+                          size: 15,
+                          color: hasFailed
+                              ? const Color(0xFFFFC6C6)
+                              : isRead
+                              ? const Color(0xFFA9D9C0)
+                              : Colors.white.withValues(alpha: 0.78),
+                        ),
+                      ],
+                    ],
+                  ),
+                ],
+              ),
+            ),
           ),
         ),
       ),
+    );
+  }
+}
+
+class _PendingMessage {
+  final String id;
+  final String content;
+  final DateTime createdAt;
+  final bool failed;
+
+  const _PendingMessage({
+    required this.id,
+    required this.content,
+    required this.createdAt,
+    this.failed = false,
+  });
+
+  _PendingMessage copyWith({bool? failed}) {
+    return _PendingMessage(
+      id: id,
+      content: content,
+      createdAt: createdAt,
+      failed: failed ?? this.failed,
     );
   }
 }
@@ -1006,19 +1120,24 @@ class _MessageComposer extends StatelessWidget {
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.end,
         children: [
-          IconButton(
-            tooltip: 'Add attachment',
-            onPressed: () {
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(
-                  content: Text('Attachments will be added later.'),
-                  behavior: SnackBarBehavior.floating,
-                ),
-              );
-            },
-            icon: const Icon(
-              Icons.add_circle_outline_rounded,
-              color: Color(0xFF6F927E),
+          Semantics(
+            button: true,
+            label: 'Add an attachment',
+            child: IconButton(
+              tooltip: 'Add attachment',
+              onPressed: () {
+                HapticFeedback.selectionClick();
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(
+                    content: Text('Attachments will be added later.'),
+                    behavior: SnackBarBehavior.floating,
+                  ),
+                );
+              },
+              icon: const Icon(
+                Icons.add_circle_outline_rounded,
+                color: Color(0xFF6F927E),
+              ),
             ),
           ),
           Expanded(
@@ -1061,26 +1180,30 @@ class _MessageComposer extends StatelessWidget {
           AnimatedScale(
             duration: const Duration(milliseconds: 180),
             scale: isSending ? 0.92 : 1,
-            child: IconButton.filled(
-              tooltip: 'Send message',
-              onPressed: isSending ? null : onSend,
-              style: IconButton.styleFrom(
-                backgroundColor: const Color(0xFF6F927E),
-                foregroundColor: Colors.white,
-                disabledBackgroundColor: const Color(
-                  0xFF6F927E,
-                ).withValues(alpha: 0.55),
+            child: Semantics(
+              button: true,
+              label: isSending ? 'Sending message' : 'Send message',
+              child: IconButton.filled(
+                tooltip: 'Send message',
+                onPressed: isSending ? null : onSend,
+                style: IconButton.styleFrom(
+                  backgroundColor: const Color(0xFF6F927E),
+                  foregroundColor: Colors.white,
+                  disabledBackgroundColor: const Color(
+                    0xFF6F927E,
+                  ).withValues(alpha: 0.55),
+                ),
+                icon: isSending
+                    ? const SizedBox(
+                        width: 19,
+                        height: 19,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2,
+                          color: Colors.white,
+                        ),
+                      )
+                    : const Icon(Icons.send_rounded),
               ),
-              icon: isSending
-                  ? const SizedBox(
-                      width: 19,
-                      height: 19,
-                      child: CircularProgressIndicator(
-                        strokeWidth: 2,
-                        color: Colors.white,
-                      ),
-                    )
-                  : const Icon(Icons.send_rounded),
             ),
           ),
         ],

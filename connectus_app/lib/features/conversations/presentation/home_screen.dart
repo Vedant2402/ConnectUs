@@ -921,9 +921,15 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
     if (isLoadingConversations) {
       return ListView(
         physics: const AlwaysScrollableScrollPhysics(),
+        padding: const EdgeInsets.fromLTRB(20, 12, 20, 110),
         children: const [
-          SizedBox(height: 230),
-          Center(child: CircularProgressIndicator()),
+          _ConversationLoadingTile(),
+          SizedBox(height: 12),
+          _ConversationLoadingTile(),
+          SizedBox(height: 12),
+          _ConversationLoadingTile(),
+          SizedBox(height: 12),
+          _ConversationLoadingTile(),
         ],
       );
     }
@@ -1445,6 +1451,73 @@ class _NavigationItem extends StatelessWidget {
               ),
             ),
           ],
+        ),
+      ),
+    );
+  }
+}
+
+class _ConversationLoadingTile extends StatelessWidget {
+  const _ConversationLoadingTile();
+
+  @override
+  Widget build(BuildContext context) {
+    final placeholder = Theme.of(
+      context,
+    ).colorScheme.onSurface.withValues(alpha: 0.08);
+
+    return Semantics(
+      label: 'Loading conversation',
+      child: ExcludeSemantics(
+        child: Container(
+          height: 82,
+          padding: const EdgeInsets.all(12),
+          decoration: BoxDecoration(
+            color: Theme.of(context).colorScheme.surfaceContainerHighest,
+            borderRadius: BorderRadius.circular(20),
+          ),
+          child: Row(
+            children: [
+              Container(
+                width: 56,
+                height: 56,
+                decoration: BoxDecoration(
+                  color: placeholder,
+                  shape: BoxShape.circle,
+                ),
+              ),
+              const SizedBox(width: 14),
+              Expanded(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    FractionallySizedBox(
+                      widthFactor: 0.48,
+                      child: Container(
+                        height: 14,
+                        decoration: BoxDecoration(
+                          color: placeholder,
+                          borderRadius: BorderRadius.circular(99),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 10),
+                    FractionallySizedBox(
+                      widthFactor: 0.78,
+                      child: Container(
+                        height: 11,
+                        decoration: BoxDecoration(
+                          color: placeholder,
+                          borderRadius: BorderRadius.circular(99),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );

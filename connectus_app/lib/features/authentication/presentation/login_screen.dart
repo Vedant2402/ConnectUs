@@ -156,13 +156,124 @@ class _LoginScreenState extends State<LoginScreen> {
     }
   }
 
-  void showPasswordResetMessage() {
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('Password reset will be added next.'),
-        behavior: SnackBarBehavior.floating,
-      ),
+  Future<void> showPasswordResetDialog() async {
+    final resetEmailController = TextEditingController(
+      text: emailController.text.trim(),
     );
+    bool isSendingReset = false;
+
+    await showDialog<void>(
+      context: context,
+      builder: (dialogContext) {
+        return StatefulBuilder(
+          builder: (context, setDialogState) {
+            Future<void> sendResetLink() async {
+              final email = resetEmailController.text.trim();
+              final validationError = validateEmail(email);
+
+              if (validationError != null) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text(validationError),
+                    behavior: SnackBarBehavior.floating,
+                  ),
+                );
+                return;
+              }
+
+              setDialogState(() => isSendingReset = true);
+
+              try {
+                await Supabase.instance.client.auth.resetPasswordForEmail(
+                  email,
+                );
+
+                if (!dialogContext.mounted || !mounted) {
+                  return;
+                }
+
+                Navigator.of(dialogContext).pop();
+                ScaffoldMessenger.of(this.context).showSnackBar(
+                  const SnackBar(
+                    content: Text(
+                      'Password-reset link sent. Check your email.',
+                    ),
+                    behavior: SnackBarBehavior.floating,
+                  ),
+                );
+              } on AuthException catch (error) {
+                if (!dialogContext.mounted) {
+                  return;
+                }
+                ScaffoldMessenger.of(dialogContext).showSnackBar(
+                  SnackBar(
+                    content: Text(error.message),
+                    behavior: SnackBarBehavior.floating,
+                  ),
+                );
+              } finally {
+                if (dialogContext.mounted) {
+                  setDialogState(() => isSendingReset = false);
+                }
+              }
+            }
+
+            return AlertDialog(
+              title: const Text('Reset password'),
+              content: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text(
+                    'Enter your account email and we will send you a secure '
+                    'password-reset link.',
+                  ),
+                  const SizedBox(height: 20),
+                  TextField(
+                    controller: resetEmailController,
+                    autofocus: true,
+                    keyboardType: TextInputType.emailAddress,
+                    textInputAction: TextInputAction.done,
+                    onSubmitted: (_) {
+                      if (!isSendingReset) {
+                        sendResetLink();
+                      }
+                    },
+                    decoration: const InputDecoration(
+                      labelText: 'Email address',
+                      prefixIcon: Icon(Icons.email_outlined),
+                    ),
+                  ),
+                ],
+              ),
+              actions: [
+                TextButton(
+                  onPressed: isSendingReset
+                      ? null
+                      : () => Navigator.of(dialogContext).pop(),
+                  child: const Text('Cancel'),
+                ),
+                FilledButton(
+                  onPressed: isSendingReset ? null : sendResetLink,
+                  child: isSendingReset
+                      ? const SizedBox(
+                          width: 18,
+                          height: 18,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2,
+                            color: Colors.white,
+                          ),
+                        )
+                      : const Text('Send link'),
+                ),
+              ],
+            );
+          },
+        );
+      },
+    );
+
+    resetEmailController.dispose();
   }
 
   @override
@@ -231,7 +342,7 @@ class _LoginScreenState extends State<LoginScreen> {
                 Align(
                   alignment: Alignment.centerRight,
                   child: TextButton(
-                    onPressed: showPasswordResetMessage,
+                    onPressed: showPasswordResetDialog,
                     child: const Text('Forgot password?'),
                   ),
                 ),
