@@ -24,6 +24,9 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
   String conversationQuery = '';
   String conversationFilter = 'All';
   int selectedTab = 2;
+  String currentDisplayName = '';
+  String currentUsername = '';
+  String? currentAvatarUrl;
 
   String? conversationError;
 
@@ -48,6 +51,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
       (_) => setPresence(true),
     );
     subscribeToHomeUpdates();
+    loadCurrentProfile();
     loadConversations();
   }
 
@@ -106,9 +110,55 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
           event: PostgresChangeEvent.all,
           schema: 'public',
           table: 'profiles',
-          callback: (_) => scheduleConversationReload(),
+          callback: (_) {
+            scheduleConversationReload();
+            loadCurrentProfile();
+          },
         )
         .subscribe();
+  }
+
+  Future<void> loadCurrentProfile() async {
+    final userId = currentUserId;
+    if (userId == null) return;
+
+    try {
+      final profile = await Supabase.instance.client
+          .from('profiles')
+          .select('username, display_name, avatar_url')
+          .eq('id', userId)
+          .single();
+      if (!mounted) return;
+      setState(() {
+        currentUsername = profile['username']?.toString() ?? '';
+        currentDisplayName = profile['display_name']?.toString() ?? '';
+        currentAvatarUrl = profile['avatar_url']?.toString();
+      });
+    } catch (error) {
+      debugPrint('Unable to load current profile: $error');
+    }
+  }
+
+  String get currentProfileInitial =>
+      getAvatarLetter(currentDisplayName, currentUsername);
+
+  Widget buildCurrentUserAvatar({double radius = 20}) {
+    final hasAvatar =
+        currentAvatarUrl != null && currentAvatarUrl!.trim().isNotEmpty;
+    return CircleAvatar(
+      radius: radius,
+      backgroundColor: Theme.of(context).colorScheme.primaryContainer,
+      backgroundImage: hasAvatar ? NetworkImage(currentAvatarUrl!) : null,
+      child: hasAvatar
+          ? null
+          : Text(
+              currentProfileInitial,
+              style: TextStyle(
+                color: Theme.of(context).colorScheme.primary,
+                fontWeight: FontWeight.w800,
+              ),
+            ),
+    );
   }
 
   void scheduleConversationReload() {
@@ -762,24 +812,21 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
               borderRadius: BorderRadius.circular(18),
             ),
             child: ListTile(
-              leading: CircleAvatar(
-                backgroundColor: Theme.of(context).colorScheme.primaryContainer,
-                child: Icon(
-                  Icons.person_rounded,
-                  color: Theme.of(context).colorScheme.primary,
-                ),
-              ),
-              title: const Text(
-                'Profile',
+              leading: buildCurrentUserAvatar(radius: 22),
+              title: Text(
+                currentDisplayName.isEmpty ? 'Profile' : currentDisplayName,
                 style: TextStyle(fontWeight: FontWeight.w700),
               ),
-              subtitle: Text(email),
+              subtitle: Text(
+                currentUsername.isEmpty ? email : '@$currentUsername',
+              ),
               trailing: const Icon(Icons.chevron_right_rounded),
               onTap: () async {
                 await Navigator.of(context).push(
                   MaterialPageRoute(builder: (_) => const SettingsScreen()),
                 );
                 if (mounted) {
+                  await loadCurrentProfile();
                   await loadConversations(showLoading: false);
                 }
               },
@@ -882,16 +929,10 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                 ),
               ),
               const Spacer(),
-              _HeaderCircle(
-                icon: Icons.camera_alt_rounded,
-                color: Theme.of(context).colorScheme.surfaceContainerHighest,
-                onTap: () {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content: Text('Camera sharing is coming soon.'),
-                    ),
-                  );
-                },
+              InkWell(
+                onTap: () => selectTab(3),
+                borderRadius: BorderRadius.circular(24),
+                child: buildCurrentUserAvatar(radius: 22),
               ),
               const SizedBox(width: 10),
               _HeaderCircle(

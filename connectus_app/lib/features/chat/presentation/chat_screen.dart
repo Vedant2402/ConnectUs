@@ -483,6 +483,8 @@ class _ChatScreenState extends State<ChatScreen> {
             )?.toLocal();
             final storedOnline =
                 profile['is_online'] as bool? ?? widget.isOnline;
+            final profileAvatarUrl =
+                profile['avatar_url']?.toString() ?? widget.avatarUrl;
             final isRecentlyActive =
                 lastSeen != null &&
                 DateTime.now().difference(lastSeen).inSeconds < 75;
@@ -505,13 +507,13 @@ class _ChatScreenState extends State<ChatScreen> {
                         radius: 20,
                         backgroundColor: const Color(0xFFDDEEE3),
                         backgroundImage:
-                            widget.avatarUrl != null &&
-                                widget.avatarUrl!.trim().isNotEmpty
-                            ? NetworkImage(widget.avatarUrl!)
+                            profileAvatarUrl != null &&
+                                profileAvatarUrl.trim().isNotEmpty
+                            ? NetworkImage(profileAvatarUrl)
                             : null,
                         child:
-                            widget.avatarUrl == null ||
-                                widget.avatarUrl!.trim().isEmpty
+                            profileAvatarUrl == null ||
+                                profileAvatarUrl.trim().isEmpty
                             ? Text(
                                 getAvatarLetter(),
                                 style: const TextStyle(
