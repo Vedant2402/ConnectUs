@@ -26,7 +26,7 @@
     <img src="https://img.shields.io/badge/Day%202-Complete-brightgreen" alt="Day 2 complete">
   </a>
   <a href="https://github.com/Vedant2402/ConnectUs">
-    <img src="https://img.shields.io/badge/Day%203-In%20Progress-orange" alt="Day 3 in progress">
+    <img src="https://img.shields.io/badge/Day%203-Complete-brightgreen" alt="Day 3 complete">
   </a>
 </p>
 
@@ -47,7 +47,7 @@ tracking, typing feedback, online presence, real-time homepage updates,
 conversation filtering, message grouping, date separators, session restoration,
 and editable profile settings.
 
-### Day 3 — In Progress
+### Day 3 — Complete
 
 Day 3 introduces the ConnectUs visual identity and a modern mobile navigation
 experience. The application now includes a custom cross-platform launcher icon,
@@ -165,11 +165,10 @@ The project uses a single Flutter codebase for Android, iOS, and web-based devel
 - [x] Application-wide light and dark appearance modes
 - [x] Light appearance as the default
 - [x] Theme controls in the homepage menu and Settings
-- [ ] Functional status updates
-- [ ] Voice and video calling
-
 ### Upcoming Work
 
+- [ ] Functional status updates
+- [ ] Voice and video calling
 - [ ] Optimistic message sending
 - [ ] Message retry handling
 - [ ] Better loading placeholders
@@ -900,11 +899,11 @@ Day 2 completed the first messaging-quality milestone:
 ## Day 3 Milestone
 
 ```text
-Day 3 In Progress — ConnectUs Branding, Mobile Navigation,
+Day 3 Complete — ConnectUs Branding, Mobile Navigation,
 Presence Improvements, and Light/Dark Appearance
 ```
 
-Current Day 3 results:
+Day 3 completed the visual identity and mobile-navigation milestone:
 
 1. ConnectUs uses a consistent custom icon across mobile, desktop, and web.
 2. The interface uses an icon-derived sage, mint, cream, and charcoal palette.
