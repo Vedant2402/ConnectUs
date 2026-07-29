@@ -1,13 +1,9 @@
-import 'dart:typed_data';
-
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:liquid_glass_widgets/liquid_glass_widgets.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../../../core/theme/app_theme_controller.dart';
-import '../../profile/presentation/avatar_crop_screen.dart';
-import '../../profile/presentation/profile_photo_viewer.dart';
 
 class SettingsScreen extends StatefulWidget {
   const SettingsScreen({super.key});
@@ -84,16 +80,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
     setState(() => isUploadingAvatar = true);
     try {
-      final selectedBytes = await selectedImage.readAsBytes();
-      if (!mounted) return;
-
-      final croppedBytes = await Navigator.of(context).push<Uint8List>(
-        MaterialPageRoute(
-          builder: (_) => AvatarCropScreen(imageData: selectedBytes),
-        ),
-      );
-      if (croppedBytes == null || !mounted) return;
-
+      final bytes = await selectedImage.readAsBytes();
       final extension = _safeImageExtension(selectedImage.name);
       final path = '$userId/profile.$extension';
       final contentType = extension == 'png'
@@ -106,7 +93,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
           .from('avatars')
           .uploadBinary(
             path,
-            croppedBytes,
+            bytes,
             fileOptions: FileOptions(
               upsert: true,
               cacheControl: '3600',
@@ -144,112 +131,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
     } finally {
       if (mounted) setState(() => isUploadingAvatar = false);
     }
-  }
-
-  Future<void> removeAvatar() async {
-    final userId = Supabase.instance.client.auth.currentUser?.id;
-    if (userId == null || isUploadingAvatar) return;
-
-    setState(() => isUploadingAvatar = true);
-    try {
-      final files = await Supabase.instance.client.storage
-          .from('avatars')
-          .list(path: userId);
-      if (files.isNotEmpty) {
-        await Supabase.instance.client.storage
-            .from('avatars')
-            .remove(files.map((file) => '$userId/${file.name}').toList());
-      }
-
-      await Supabase.instance.client
-          .from('profiles')
-          .update({'avatar_url': null})
-          .eq('id', userId);
-
-      if (!mounted) return;
-      setState(() => avatarUrl = null);
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Profile photo removed.'),
-          behavior: SnackBarBehavior.floating,
-        ),
-      );
-    } catch (error) {
-      if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Unable to remove your photo: $error'),
-          behavior: SnackBarBehavior.floating,
-        ),
-      );
-    } finally {
-      if (mounted) setState(() => isUploadingAvatar = false);
-    }
-  }
-
-  void viewAvatar() {
-    final url = avatarUrl;
-    if (url == null || url.isEmpty) return;
-
-    Navigator.of(context).push(
-      MaterialPageRoute(
-        builder: (_) => ProfilePhotoViewer(
-          imageUrl: url,
-          displayName: displayNameController.text.trim().isEmpty
-              ? '@$username'
-              : displayNameController.text.trim(),
-        ),
-      ),
-    );
-  }
-
-  Future<void> showAvatarActions() async {
-    final hasAvatar = avatarUrl != null && avatarUrl!.isNotEmpty;
-    await showModalBottomSheet<void>(
-      context: context,
-      showDragHandle: true,
-      builder: (sheetContext) => SafeArea(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            if (hasAvatar)
-              ListTile(
-                leading: const Icon(Icons.visibility_outlined),
-                title: const Text('View profile photo'),
-                onTap: () {
-                  Navigator.pop(sheetContext);
-                  viewAvatar();
-                },
-              ),
-            ListTile(
-              leading: const Icon(Icons.photo_library_outlined),
-              title: Text(hasAvatar ? 'Choose a new photo' : 'Choose photo'),
-              subtitle: const Text('Crop and reposition before uploading'),
-              onTap: () {
-                Navigator.pop(sheetContext);
-                chooseAvatar();
-              },
-            ),
-            if (hasAvatar)
-              ListTile(
-                leading: const Icon(
-                  Icons.delete_outline_rounded,
-                  color: Colors.redAccent,
-                ),
-                title: const Text(
-                  'Remove photo',
-                  style: TextStyle(color: Colors.redAccent),
-                ),
-                onTap: () {
-                  Navigator.pop(sheetContext);
-                  removeAvatar();
-                },
-              ),
-            const SizedBox(height: 8),
-          ],
-        ),
-      ),
-    );
   }
 
   String _safeImageExtension(String filename) {
@@ -329,7 +210,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                         const SizedBox(height: 18),
                         Center(
                           child: InkWell(
-                            onTap: isUploadingAvatar ? null : showAvatarActions,
+                            onTap: isUploadingAvatar ? null : chooseAvatar,
                             borderRadius: BorderRadius.circular(54),
                             child: Stack(
                               clipBehavior: Clip.none,
@@ -387,14 +268,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
                         const SizedBox(height: 12),
                         Center(
                           child: TextButton(
-                            onPressed: isUploadingAvatar
-                                ? null
-                                : showAvatarActions,
-                            child: Text(
-                              avatarUrl == null || avatarUrl!.isEmpty
-                                  ? 'Add profile photo'
-                                  : 'View or change profile photo',
-                            ),
+                            onPressed: isUploadingAvatar ? null : chooseAvatar,
+                            child: const Text('Change profile photo'),
                           ),
                         ),
                         const SizedBox(height: 6),
