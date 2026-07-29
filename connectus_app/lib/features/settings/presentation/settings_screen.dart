@@ -1,9 +1,12 @@
+import 'dart:typed_data';
+
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:liquid_glass_widgets/liquid_glass_widgets.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../../../core/theme/app_theme_controller.dart';
+import '../../profile/presentation/avatar_crop_screen.dart';
 
 class SettingsScreen extends StatefulWidget {
   const SettingsScreen({super.key});
@@ -20,6 +23,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
   bool isUploadingAvatar = false;
   String username = '';
   String? avatarUrl;
+  DateTime? usernameChangedAt;
 
   @override
   void initState() {
@@ -41,7 +45,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
     try {
       final profile = await Supabase.instance.client
           .from('profiles')
-          .select('username, display_name, bio, avatar_url')
+          .select(
+            'username, display_name, bio, avatar_url, username_changed_at',
+          )
           .eq('id', userId)
           .single();
       if (!mounted) return;
@@ -50,6 +56,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
         displayNameController.text = profile['display_name']?.toString() ?? '';
         bioController.text = profile['bio']?.toString() ?? '';
         avatarUrl = profile['avatar_url']?.toString();
+        usernameChangedAt = DateTime.tryParse(
+          profile['username_changed_at']?.toString() ?? '',
+        )?.toLocal();
         isLoading = false;
       });
     } catch (error) {
@@ -80,7 +89,16 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
     setState(() => isUploadingAvatar = true);
     try {
-      final bytes = await selectedImage.readAsBytes();
+      final selectedBytes = await selectedImage.readAsBytes();
+      if (!mounted) return;
+
+      final croppedBytes = await Navigator.of(context).push<Uint8List>(
+        MaterialPageRoute(
+          builder: (_) => AvatarCropScreen(imageData: selectedBytes),
+        ),
+      );
+      if (croppedBytes == null || !mounted) return;
+
       final extension = _safeImageExtension(selectedImage.name);
       final path = '$userId/profile.$extension';
       final contentType = extension == 'png'
@@ -93,7 +111,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
           .from('avatars')
           .uploadBinary(
             path,
-            bytes,
+            croppedBytes,
             fileOptions: FileOptions(
               upsert: true,
               cacheControl: '3600',
@@ -130,6 +148,202 @@ class _SettingsScreenState extends State<SettingsScreen> {
       );
     } finally {
       if (mounted) setState(() => isUploadingAvatar = false);
+    }
+  }
+
+  Future<void> removeAvatar() async {
+    final userId = Supabase.instance.client.auth.currentUser?.id;
+    if (userId == null || isUploadingAvatar) return;
+
+    setState(() => isUploadingAvatar = true);
+    try {
+      final files = await Supabase.instance.client.storage
+          .from('avatars')
+          .list(path: userId);
+      if (files.isNotEmpty) {
+        await Supabase.instance.client.storage
+            .from('avatars')
+            .remove(files.map((file) => '$userId/${file.name}').toList());
+      }
+      await Supabase.instance.client
+          .from('profiles')
+          .update({'avatar_url': null})
+          .eq('id', userId);
+
+      if (!mounted) return;
+      setState(() => avatarUrl = null);
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Profile photo removed.'),
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+    } catch (error) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Unable to remove your photo: $error'),
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+    } finally {
+      if (mounted) setState(() => isUploadingAvatar = false);
+    }
+  }
+
+  Future<void> showAvatarActions() async {
+    final hasAvatar = avatarUrl != null && avatarUrl!.isNotEmpty;
+    await showModalBottomSheet<void>(
+      context: context,
+      showDragHandle: true,
+      builder: (sheetContext) => SafeArea(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            ListTile(
+              leading: const Icon(Icons.photo_library_outlined),
+              title: Text(hasAvatar ? 'Choose a new photo' : 'Choose photo'),
+              subtitle: const Text('Crop and reposition before uploading'),
+              onTap: () {
+                Navigator.pop(sheetContext);
+                chooseAvatar();
+              },
+            ),
+            if (hasAvatar)
+              ListTile(
+                leading: const Icon(
+                  Icons.delete_outline_rounded,
+                  color: Colors.redAccent,
+                ),
+                title: const Text(
+                  'Remove current photo',
+                  style: TextStyle(color: Colors.redAccent),
+                ),
+                subtitle: const Text('Return to your profile initial'),
+                onTap: () {
+                  Navigator.pop(sheetContext);
+                  removeAvatar();
+                },
+              ),
+            const SizedBox(height: 8),
+          ],
+        ),
+      ),
+    );
+  }
+
+  DateTime? get nextUsernameChangeAt {
+    final changedAt = usernameChangedAt;
+    if (changedAt == null) return null;
+    return changedAt.add(const Duration(days: 7));
+  }
+
+  bool get canChangeUsername {
+    final nextChange = nextUsernameChangeAt;
+    return nextChange == null || !DateTime.now().isBefore(nextChange);
+  }
+
+  String get usernameCooldownText {
+    final nextChange = nextUsernameChangeAt;
+    if (nextChange == null || canChangeUsername) {
+      return 'You can change your username now.';
+    }
+    final remaining = nextChange.difference(DateTime.now());
+    final days = remaining.inDays;
+    final hours = remaining.inHours.remainder(24);
+    return 'Available again in ${days}d ${hours}h.';
+  }
+
+  Future<void> showUsernameEditor() async {
+    if (!canChangeUsername) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(usernameCooldownText),
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+      return;
+    }
+
+    final controller = TextEditingController(text: username);
+    final formKey = GlobalKey<FormState>();
+    final newUsername = await showDialog<String>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: const Text('Change username'),
+        content: Form(
+          key: formKey,
+          child: TextFormField(
+            controller: controller,
+            autofocus: true,
+            autocorrect: false,
+            maxLength: 24,
+            decoration: const InputDecoration(
+              labelText: 'Username',
+              prefixText: '@',
+              helperText: 'Letters, numbers, and underscores only',
+            ),
+            validator: (value) {
+              final cleaned = value?.trim() ?? '';
+              if (cleaned.length < 3) {
+                return 'Use at least 3 characters.';
+              }
+              if (!RegExp(r'^[A-Za-z0-9_]+$').hasMatch(cleaned)) {
+                return 'Only letters, numbers, and underscores are allowed.';
+              }
+              if (cleaned.toLowerCase() == username.toLowerCase()) {
+                return 'Enter a different username.';
+              }
+              return null;
+            },
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(dialogContext),
+            child: const Text('Cancel'),
+          ),
+          FilledButton(
+            onPressed: () {
+              if (formKey.currentState?.validate() == true) {
+                Navigator.pop(dialogContext, controller.text.trim());
+              }
+            },
+            child: const Text('Save'),
+          ),
+        ],
+      ),
+    );
+    controller.dispose();
+    if (newUsername == null || !mounted) return;
+
+    final userId = Supabase.instance.client.auth.currentUser?.id;
+    if (userId == null) return;
+
+    try {
+      await Supabase.instance.client
+          .from('profiles')
+          .update({'username': newUsername})
+          .eq('id', userId);
+      if (!mounted) return;
+      setState(() {
+        username = newUsername;
+        usernameChangedAt = DateTime.now();
+      });
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Username updated. You can change it again in 7 days.'),
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+    } on PostgrestException catch (error) {
+      if (!mounted) return;
+      final message = error.code == '23505'
+          ? 'That username is already taken.'
+          : error.message;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(message), behavior: SnackBarBehavior.floating),
+      );
     }
   }
 
@@ -210,7 +424,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                         const SizedBox(height: 18),
                         Center(
                           child: InkWell(
-                            onTap: isUploadingAvatar ? null : chooseAvatar,
+                            onTap: isUploadingAvatar ? null : showAvatarActions,
                             borderRadius: BorderRadius.circular(54),
                             child: Stack(
                               clipBehavior: Clip.none,
@@ -268,16 +482,45 @@ class _SettingsScreenState extends State<SettingsScreen> {
                         const SizedBox(height: 12),
                         Center(
                           child: TextButton(
-                            onPressed: isUploadingAvatar ? null : chooseAvatar,
-                            child: const Text('Change profile photo'),
+                            onPressed: isUploadingAvatar
+                                ? null
+                                : showAvatarActions,
+                            child: Text(
+                              avatarUrl == null || avatarUrl!.isEmpty
+                                  ? 'Add profile photo'
+                                  : 'Change or remove photo',
+                            ),
+                          ),
+                        ),
+                        const SizedBox(height: 2),
+                        Center(
+                          child: Text(
+                            '@$username',
+                            textAlign: TextAlign.center,
+                            style: TextStyle(
+                              fontSize: 17,
+                              fontWeight: FontWeight.w700,
+                              color: Theme.of(
+                                context,
+                              ).colorScheme.onSurfaceVariant,
+                            ),
                           ),
                         ),
                         const SizedBox(height: 6),
-                        Text(
-                          '@$username',
-                          style: TextStyle(color: Colors.grey.shade700),
+                        Center(
+                          child: TextButton.icon(
+                            onPressed: canChangeUsername
+                                ? showUsernameEditor
+                                : null,
+                            icon: const Icon(Icons.alternate_email_rounded),
+                            label: Text(
+                              canChangeUsername
+                                  ? 'Change username'
+                                  : usernameCooldownText,
+                            ),
+                          ),
                         ),
-                        const SizedBox(height: 22),
+                        const SizedBox(height: 18),
                         TextField(
                           controller: displayNameController,
                           textCapitalization: TextCapitalization.words,
