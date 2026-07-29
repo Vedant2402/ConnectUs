@@ -500,6 +500,8 @@ class _ChatScreenState extends State<ChatScreen> {
                   const SizedBox(width: 11),
                   Expanded(
                     child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      mainAxisAlignment: MainAxisAlignment.center,
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
@@ -507,16 +509,19 @@ class _ChatScreenState extends State<ChatScreen> {
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
                           style: const TextStyle(
-                            fontSize: 17,
+                            fontSize: 16.5,
+                            height: 1.05,
                             fontWeight: FontWeight.w800,
                           ),
                         ),
+                        const SizedBox(height: 4),
                         Text(
                           showAsOnline ? 'online' : formatLastSeen(lastSeen),
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
                           style: TextStyle(
-                            fontSize: 12,
+                            fontSize: 11.5,
+                            height: 1.1,
                             color: showAsOnline
                                 ? const Color(0xFF4B8F68)
                                 : Colors.grey.shade600,
