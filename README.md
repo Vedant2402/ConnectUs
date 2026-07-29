@@ -165,6 +165,13 @@ The project uses a single Flutter codebase for Android, iOS, and web-based devel
 - [x] Application-wide light and dark appearance modes
 - [x] Light appearance as the default
 - [x] Theme controls in the homepage menu and Settings
+- [x] Message bubbles that adapt to the text width
+- [x] Higher-contrast incoming and outgoing message bubbles
+- [x] Segmented chat header with separate navigation and call controls
+- [x] Improved last-seen fallback using profile activity timestamps
+- [x] Balanced chat spacing, alignment, and indentation
+- [x] Faster cached-session startup routing
+
 ### Upcoming Work
 
 - [ ] Functional status updates
@@ -311,6 +318,11 @@ The chat screen currently supports:
 - Message timestamps
 - Sent, delivered, and read indicators
 - Automatic scrolling
+- Message bubbles that adapt to their content width
+- Higher-contrast bubbles in light and dark appearance modes
+- Date separators and grouped consecutive messages
+- Segmented navigation, profile, video, and voice-call header controls
+- Online or last-seen information with profile-activity fallback
 - Empty-chat state
 - Error state
 - Reopening existing conversations
@@ -913,11 +925,12 @@ Day 3 completed the visual identity and mobile-navigation milestone:
 6. A floating ribbon provides Updates, Calls, Chats, and Settings tabs.
 7. Tabs open inside the homepage with animated slides and swipe gestures.
 8. Light appearance is the default, with app-wide dark-mode support.
-6. Online state and last-seen timestamps are maintained from app lifecycle events.
-7. Conversations can be filtered by name, username, or latest message.
-8. Chat history includes date separators and grouped consecutive messages.
-9. Existing authenticated sessions are restored at startup.
-10. Users can edit their display name and biography in Settings.
+9. Online state and last-seen timestamps are maintained from app lifecycle events.
+10. Conversations can be filtered by name, username, or latest message.
+11. Chat history includes adaptive bubbles, date separators, and grouped messages.
+12. The chat header separates navigation, identity, video, and voice-call actions.
+13. Existing authenticated sessions restore immediately from the cached session.
+14. Users can edit their display name and biography in Settings.
 
 ---
 
