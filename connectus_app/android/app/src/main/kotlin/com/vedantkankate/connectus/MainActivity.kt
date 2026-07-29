@@ -1,4 +1,4 @@
-package com.example.connectus_app
+package com.vedantkankate.connectus
 
 import io.flutter.embedding.android.FlutterActivity
 

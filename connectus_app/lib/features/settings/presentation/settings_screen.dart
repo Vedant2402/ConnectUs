@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:liquid_glass_widgets/liquid_glass_widgets.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
@@ -16,7 +17,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
   final bioController = TextEditingController();
   bool isLoading = true;
   bool isSaving = false;
+  bool isUploadingAvatar = false;
   String username = '';
+  String? avatarUrl;
 
   @override
   void initState() {
@@ -38,7 +41,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
     try {
       final profile = await Supabase.instance.client
           .from('profiles')
-          .select('username, display_name, bio')
+          .select('username, display_name, bio, avatar_url')
           .eq('id', userId)
           .single();
       if (!mounted) return;
@@ -46,6 +49,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
         username = profile['username']?.toString() ?? '';
         displayNameController.text = profile['display_name']?.toString() ?? '';
         bioController.text = profile['bio']?.toString() ?? '';
+        avatarUrl = profile['avatar_url']?.toString();
         isLoading = false;
       });
     } catch (error) {
@@ -58,6 +62,88 @@ class _SettingsScreenState extends State<SettingsScreen> {
         ),
       );
     }
+  }
+
+  Future<void> chooseAvatar() async {
+    if (isUploadingAvatar) return;
+
+    final selectedImage = await ImagePicker().pickImage(
+      source: ImageSource.gallery,
+      maxWidth: 1200,
+      maxHeight: 1200,
+      imageQuality: 85,
+    );
+    if (selectedImage == null) return;
+
+    final userId = Supabase.instance.client.auth.currentUser?.id;
+    if (userId == null) return;
+
+    setState(() => isUploadingAvatar = true);
+    try {
+      final bytes = await selectedImage.readAsBytes();
+      final extension = _safeImageExtension(selectedImage.name);
+      final path = '$userId/profile.$extension';
+      final contentType = extension == 'png'
+          ? 'image/png'
+          : extension == 'webp'
+          ? 'image/webp'
+          : 'image/jpeg';
+
+      await Supabase.instance.client.storage
+          .from('avatars')
+          .uploadBinary(
+            path,
+            bytes,
+            fileOptions: FileOptions(
+              upsert: true,
+              cacheControl: '3600',
+              contentType: contentType,
+            ),
+          );
+
+      final publicUrl = Supabase.instance.client.storage
+          .from('avatars')
+          .getPublicUrl(path);
+      final refreshedUrl =
+          '$publicUrl?v=${DateTime.now().millisecondsSinceEpoch}';
+
+      await Supabase.instance.client
+          .from('profiles')
+          .update({'avatar_url': refreshedUrl})
+          .eq('id', userId);
+
+      if (!mounted) return;
+      setState(() => avatarUrl = refreshedUrl);
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Profile photo updated.'),
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+    } catch (error) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Unable to upload your photo: $error'),
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+    } finally {
+      if (mounted) setState(() => isUploadingAvatar = false);
+    }
+  }
+
+  String _safeImageExtension(String filename) {
+    final extension = filename.split('.').last.toLowerCase();
+    if (extension == 'png' || extension == 'webp') return extension;
+    return 'jpg';
+  }
+
+  String get profileInitial {
+    final displayName = displayNameController.text.trim();
+    if (displayName.isNotEmpty) return displayName[0].toUpperCase();
+    if (username.isNotEmpty) return username[0].toUpperCase();
+    return '?';
   }
 
   Future<void> saveProfile() async {
@@ -119,6 +205,71 @@ class _SettingsScreenState extends State<SettingsScreen> {
                           style: TextStyle(
                             fontSize: 22,
                             fontWeight: FontWeight.w800,
+                          ),
+                        ),
+                        const SizedBox(height: 18),
+                        Center(
+                          child: InkWell(
+                            onTap: isUploadingAvatar ? null : chooseAvatar,
+                            borderRadius: BorderRadius.circular(54),
+                            child: Stack(
+                              clipBehavior: Clip.none,
+                              children: [
+                                CircleAvatar(
+                                  radius: 48,
+                                  backgroundColor: Theme.of(
+                                    context,
+                                  ).colorScheme.primaryContainer,
+                                  backgroundImage:
+                                      avatarUrl != null && avatarUrl!.isNotEmpty
+                                      ? NetworkImage(avatarUrl!)
+                                      : null,
+                                  child: avatarUrl == null || avatarUrl!.isEmpty
+                                      ? Text(
+                                          profileInitial,
+                                          style: TextStyle(
+                                            fontSize: 32,
+                                            fontWeight: FontWeight.w800,
+                                            color: Theme.of(
+                                              context,
+                                            ).colorScheme.primary,
+                                          ),
+                                        )
+                                      : null,
+                                ),
+                                Positioned(
+                                  right: -3,
+                                  bottom: -3,
+                                  child: CircleAvatar(
+                                    radius: 18,
+                                    backgroundColor: Theme.of(
+                                      context,
+                                    ).colorScheme.primary,
+                                    child: isUploadingAvatar
+                                        ? const SizedBox(
+                                            width: 18,
+                                            height: 18,
+                                            child: CircularProgressIndicator(
+                                              strokeWidth: 2,
+                                              color: Colors.white,
+                                            ),
+                                          )
+                                        : const Icon(
+                                            Icons.camera_alt_rounded,
+                                            size: 18,
+                                            color: Colors.white,
+                                          ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                        const SizedBox(height: 12),
+                        Center(
+                          child: TextButton(
+                            onPressed: isUploadingAvatar ? null : chooseAvatar,
+                            child: const Text('Change profile photo'),
                           ),
                         ),
                         const SizedBox(height: 6),

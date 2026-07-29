@@ -4,6 +4,7 @@ import 'package:liquid_glass_widgets/liquid_glass_widgets.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import 'app/connect_us_app.dart';
+import 'core/services/firebase_service.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -26,6 +27,7 @@ Future<void> main() async {
     publishableKey: supabasePublishableKey,
   );
 
+  await FirebaseService.initialize();
   await LiquidGlassWidgets.initialize();
 
   runApp(

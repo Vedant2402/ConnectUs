@@ -659,6 +659,37 @@ Never place these values inside the Flutter client:
 
 ---
 
+## Firebase and Profile Media
+
+ConnectUs is registered with Firebase project `connectus-a5c18` for Android,
+Apple, and web. The application:
+
+- Requests notification permission.
+- Registers and refreshes Firebase Cloud Messaging device tokens.
+- Stores each signed-in user's tokens in the protected `push_tokens` table.
+- Handles foreground and background notification events.
+- Reports uncaught native Flutter errors through Firebase Crashlytics.
+- Allows users to choose and upload profile photographs.
+- Stores avatars in the public-read, owner-write Supabase `avatars` bucket.
+
+Apply these migrations in chronological order before testing these features:
+
+```text
+supabase/migrations/20260729_profile_avatar_storage.sql
+supabase/migrations/20260729_push_tokens.sql
+```
+
+Firebase client identifiers in `firebase_options.dart` are public application
+configuration. Service-account credentials, Firebase Admin credentials, APNs
+keys, and Supabase service-role keys must remain outside the Flutter client.
+
+For iPhone notifications, enable the Push Notifications and Background Modes
+capabilities in Xcode and upload an Apple APNs authentication key to Firebase.
+Automatic push delivery after a database message is created must be performed
+by trusted server-side code, not by the Flutter application.
+
+---
+
 ## Run the Application
 
 ### Web Development
@@ -838,7 +869,7 @@ nothing to commit, working tree clean
 - [x] Real-time online presence
 - [x] Last-seen updates
 - [x] Profile editing
-- [ ] Avatar uploads
+- [x] Avatar uploads
 - [x] Conversation search
 - [ ] Mute controls
 
@@ -856,14 +887,19 @@ nothing to commit, working tree clean
 
 ### Milestone 8 — Release Preparation
 
-- [ ] Firebase Cloud Messaging
-- [ ] Crash reporting
+- [x] Firebase Cloud Messaging client integration
+- [x] Firebase Crashlytics integration
 - [ ] Integration testing
 - [ ] Signed Android build
 - [ ] iOS TestFlight build
 - [x] GitHub Actions
 - [x] Production documentation
 - [x] Security review
+
+> Firebase client registration is complete for Android, Apple, and web.
+> Automatic message-triggered notification delivery still requires a trusted
+> server function, and iPhone delivery requires an Apple APNs authentication
+> key connected in Firebase.
 
 ---
 
