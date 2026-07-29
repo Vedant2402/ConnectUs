@@ -409,13 +409,13 @@ class _ChatScreenState extends State<ChatScreen> {
     return Scaffold(
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: AppBar(
-        toolbarHeight: 78,
+        toolbarHeight: 70,
         elevation: 0,
         backgroundColor: Colors.transparent,
         automaticallyImplyLeading: false,
         leadingWidth: 64,
         leading: Padding(
-          padding: const EdgeInsets.fromLTRB(10, 10, 6, 10),
+          padding: const EdgeInsets.fromLTRB(10, 7, 6, 7),
           child: _ChatHeaderButton(
             icon: Icons.arrow_back_rounded,
             tooltip: 'Back',
@@ -444,8 +444,8 @@ class _ChatScreenState extends State<ChatScreen> {
             final showAsOnline = storedOnline && isRecentlyActive;
 
             return Container(
-              height: 58,
-              padding: const EdgeInsets.symmetric(horizontal: 9),
+              height: 54,
+              padding: const EdgeInsets.symmetric(horizontal: 8),
               decoration: BoxDecoration(
                 color: Theme.of(context).colorScheme.surfaceContainerHighest,
                 borderRadius: BorderRadius.circular(30),
@@ -532,7 +532,7 @@ class _ChatScreenState extends State<ChatScreen> {
         ),
         actions: [
           Padding(
-            padding: const EdgeInsets.fromLTRB(7, 10, 3, 10),
+            padding: const EdgeInsets.fromLTRB(7, 7, 3, 7),
             child: _ChatHeaderButton(
               icon: Icons.videocam_outlined,
               tooltip: 'Video call',
@@ -546,7 +546,7 @@ class _ChatScreenState extends State<ChatScreen> {
             ),
           ),
           Padding(
-            padding: const EdgeInsets.fromLTRB(3, 10, 10, 10),
+            padding: const EdgeInsets.fromLTRB(3, 7, 10, 7),
             child: _ChatHeaderButton(
               icon: Icons.call_outlined,
               tooltip: 'Voice call',
@@ -623,7 +623,7 @@ class _ChatScreenState extends State<ChatScreen> {
 
                       return ListView.builder(
                         controller: scrollController,
-                        padding: const EdgeInsets.fromLTRB(16, 18, 16, 18),
+                        padding: const EdgeInsets.fromLTRB(12, 8, 12, 14),
                         itemCount: messages.length,
                         itemBuilder: (context, index) {
                           final message = messages[index];
@@ -727,7 +727,7 @@ class _DateSeparator extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 14),
+      padding: const EdgeInsets.symmetric(vertical: 8),
       child: Center(
         child: Container(
           padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
@@ -894,8 +894,8 @@ class _MessageBubble extends StatelessWidget {
           constraints: BoxConstraints(
             maxWidth: MediaQuery.sizeOf(context).width * 0.76,
           ),
-          margin: EdgeInsets.only(bottom: isGrouped ? 3 : 9),
-          padding: const EdgeInsets.fromLTRB(15, 11, 11, 7),
+          margin: EdgeInsets.only(bottom: isGrouped ? 2 : 6),
+          padding: const EdgeInsets.fromLTRB(14, 9, 10, 6),
           decoration: BoxDecoration(
             color: isMine
                 ? (Theme.of(context).brightness == Brightness.dark
