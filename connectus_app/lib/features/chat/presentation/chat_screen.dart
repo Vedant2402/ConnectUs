@@ -336,7 +336,7 @@ class _ChatScreenState extends State<ChatScreen> {
   }
 
   String formatLastSeen(DateTime? value) {
-    if (value == null) return 'last seen unavailable';
+    if (value == null) return '@${widget.username}';
 
     final difference = DateTime.now().difference(value);
 
@@ -409,8 +409,19 @@ class _ChatScreenState extends State<ChatScreen> {
     return Scaffold(
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: AppBar(
+        toolbarHeight: 78,
         elevation: 0,
         backgroundColor: Colors.transparent,
+        automaticallyImplyLeading: false,
+        leadingWidth: 64,
+        leading: Padding(
+          padding: const EdgeInsets.fromLTRB(10, 10, 6, 10),
+          child: _ChatHeaderButton(
+            icon: Icons.arrow_back_rounded,
+            tooltip: 'Back',
+            onPressed: () => Navigator.of(context).pop(),
+          ),
+        ),
         titleSpacing: 0,
         title: StreamBuilder<List<Map<String, dynamic>>>(
           stream: otherProfileStream,
@@ -418,8 +429,12 @@ class _ChatScreenState extends State<ChatScreen> {
             final profile = snapshot.data?.isNotEmpty == true
                 ? snapshot.data!.first
                 : <String, dynamic>{};
+            final lastActivity =
+                profile['last_seen_at'] ??
+                profile['updated_at'] ??
+                profile['created_at'];
             final lastSeen = DateTime.tryParse(
-              profile['last_seen_at']?.toString() ?? '',
+              lastActivity?.toString() ?? '',
             )?.toLocal();
             final storedOnline =
                 profile['is_online'] as bool? ?? widget.isOnline;
@@ -428,106 +443,121 @@ class _ChatScreenState extends State<ChatScreen> {
                 DateTime.now().difference(lastSeen).inSeconds < 75;
             final showAsOnline = storedOnline && isRecentlyActive;
 
-            return Row(
-              children: [
-                Stack(
-                  clipBehavior: Clip.none,
-                  children: [
-                    CircleAvatar(
-                      radius: 20,
-                      backgroundColor: const Color(0xFFDDEEE3),
-                      backgroundImage:
-                          widget.avatarUrl != null &&
-                              widget.avatarUrl!.trim().isNotEmpty
-                          ? NetworkImage(widget.avatarUrl!)
-                          : null,
-                      child:
-                          widget.avatarUrl == null ||
-                              widget.avatarUrl!.trim().isEmpty
-                          ? Text(
-                              getAvatarLetter(),
-                              style: const TextStyle(
-                                color: Color(0xFF6F927E),
-                                fontWeight: FontWeight.w800,
+            return Container(
+              height: 58,
+              padding: const EdgeInsets.symmetric(horizontal: 9),
+              decoration: BoxDecoration(
+                color: Theme.of(context).colorScheme.surfaceContainerHighest,
+                borderRadius: BorderRadius.circular(30),
+                border: Border.all(color: Theme.of(context).dividerColor),
+              ),
+              child: Row(
+                children: [
+                  Stack(
+                    clipBehavior: Clip.none,
+                    children: [
+                      CircleAvatar(
+                        radius: 20,
+                        backgroundColor: const Color(0xFFDDEEE3),
+                        backgroundImage:
+                            widget.avatarUrl != null &&
+                                widget.avatarUrl!.trim().isNotEmpty
+                            ? NetworkImage(widget.avatarUrl!)
+                            : null,
+                        child:
+                            widget.avatarUrl == null ||
+                                widget.avatarUrl!.trim().isEmpty
+                            ? Text(
+                                getAvatarLetter(),
+                                style: const TextStyle(
+                                  color: Color(0xFF6F927E),
+                                  fontWeight: FontWeight.w800,
+                                ),
+                              )
+                            : null,
+                      ),
+                      if (showAsOnline)
+                        Positioned(
+                          right: -1,
+                          bottom: -1,
+                          child: Container(
+                            width: 12,
+                            height: 12,
+                            decoration: BoxDecoration(
+                              color: const Color(0xFF5FAF7B),
+                              shape: BoxShape.circle,
+                              border: Border.all(
+                                color: Theme.of(
+                                  context,
+                                ).scaffoldBackgroundColor,
+                                width: 2,
                               ),
-                            )
-                          : null,
-                    ),
-                    if (showAsOnline)
-                      Positioned(
-                        right: -1,
-                        bottom: -1,
-                        child: Container(
-                          width: 12,
-                          height: 12,
-                          decoration: BoxDecoration(
-                            color: const Color(0xFF5FAF7B),
-                            shape: BoxShape.circle,
-                            border: Border.all(
-                              color: Theme.of(context).scaffoldBackgroundColor,
-                              width: 2,
                             ),
                           ),
                         ),
-                      ),
-                  ],
-                ),
-                const SizedBox(width: 11),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        widget.displayName,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: const TextStyle(
-                          fontSize: 17,
-                          fontWeight: FontWeight.w800,
-                        ),
-                      ),
-                      Text(
-                        showAsOnline ? 'online' : formatLastSeen(lastSeen),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: TextStyle(
-                          fontSize: 12,
-                          color: showAsOnline
-                              ? const Color(0xFF4B8F68)
-                              : Colors.grey.shade600,
-                        ),
-                      ),
                     ],
                   ),
-                ),
-              ],
+                  const SizedBox(width: 11),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          widget.displayName,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: const TextStyle(
+                            fontSize: 17,
+                            fontWeight: FontWeight.w800,
+                          ),
+                        ),
+                        Text(
+                          showAsOnline ? 'online' : formatLastSeen(lastSeen),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: TextStyle(
+                            fontSize: 12,
+                            color: showAsOnline
+                                ? const Color(0xFF4B8F68)
+                                : Colors.grey.shade600,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
             );
           },
         ),
         actions: [
-          IconButton(
-            tooltip: 'Video call',
-            onPressed: () {
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(
-                  content: Text('Video calling will be added later.'),
-                  behavior: SnackBarBehavior.floating,
-                ),
-              );
-            },
-            icon: const Icon(Icons.videocam_outlined),
+          Padding(
+            padding: const EdgeInsets.fromLTRB(7, 10, 3, 10),
+            child: _ChatHeaderButton(
+              icon: Icons.videocam_outlined,
+              tooltip: 'Video call',
+              onPressed: () {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(
+                    content: Text('Video calling will be added later.'),
+                  ),
+                );
+              },
+            ),
           ),
-          IconButton(
-            tooltip: 'Voice call',
-            onPressed: () {
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(
-                  content: Text('Voice calling will be added later.'),
-                  behavior: SnackBarBehavior.floating,
-                ),
-              );
-            },
-            icon: const Icon(Icons.call_outlined),
+          Padding(
+            padding: const EdgeInsets.fromLTRB(3, 10, 10, 10),
+            child: _ChatHeaderButton(
+              icon: Icons.call_outlined,
+              tooltip: 'Voice call',
+              onPressed: () {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(
+                    content: Text('Voice calling will be added later.'),
+                  ),
+                );
+              },
+            ),
           ),
         ],
       ),
@@ -809,6 +839,33 @@ class _ChatErrorState extends StatelessWidget {
   }
 }
 
+class _ChatHeaderButton extends StatelessWidget {
+  final IconData icon;
+  final String tooltip;
+  final VoidCallback onPressed;
+
+  const _ChatHeaderButton({
+    required this.icon,
+    required this.tooltip,
+    required this.onPressed,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Material(
+      color: Theme.of(context).colorScheme.surfaceContainerHighest,
+      shape: CircleBorder(
+        side: BorderSide(color: Theme.of(context).dividerColor),
+      ),
+      child: IconButton(
+        tooltip: tooltip,
+        onPressed: onPressed,
+        icon: Icon(icon),
+      ),
+    );
+  }
+}
+
 class _MessageBubble extends StatelessWidget {
   final String content;
   final String time;
@@ -841,8 +898,17 @@ class _MessageBubble extends StatelessWidget {
           padding: const EdgeInsets.fromLTRB(15, 11, 11, 7),
           decoration: BoxDecoration(
             color: isMine
-                ? Theme.of(context).colorScheme.primary
-                : Theme.of(context).colorScheme.surfaceContainerHighest,
+                ? (Theme.of(context).brightness == Brightness.dark
+                      ? const Color(0xFF436B56)
+                      : const Color(0xFF668D77))
+                : (Theme.of(context).brightness == Brightness.dark
+                      ? const Color(0xFF2C302E)
+                      : const Color(0xFFE5E9E6)),
+            border: Border.all(
+              color: isMine
+                  ? const Color(0xFF527762)
+                  : Theme.of(context).dividerColor,
+            ),
             borderRadius: BorderRadius.only(
               topLeft: const Radius.circular(20),
               topRight: const Radius.circular(20),
