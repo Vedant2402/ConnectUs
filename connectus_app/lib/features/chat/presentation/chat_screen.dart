@@ -830,38 +830,38 @@ class _MessageBubble extends StatelessWidget {
   Widget build(BuildContext context) {
     return Align(
       alignment: isMine ? Alignment.centerRight : Alignment.centerLeft,
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 220),
-        curve: Curves.easeOutCubic,
-        constraints: BoxConstraints(
-          maxWidth: MediaQuery.sizeOf(context).width * 0.76,
-        ),
-        margin: EdgeInsets.only(bottom: isGrouped ? 3 : 9),
-        padding: const EdgeInsets.fromLTRB(15, 11, 11, 7),
-        decoration: BoxDecoration(
-          color: isMine
-              ? Theme.of(context).colorScheme.primary
-              : Theme.of(context).colorScheme.surfaceContainerHighest,
-          borderRadius: BorderRadius.only(
-            topLeft: const Radius.circular(20),
-            topRight: const Radius.circular(20),
-            bottomLeft: Radius.circular(isMine ? 20 : 5),
-            bottomRight: Radius.circular(isMine ? 5 : 20),
+      child: IntrinsicWidth(
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 220),
+          curve: Curves.easeOutCubic,
+          constraints: BoxConstraints(
+            maxWidth: MediaQuery.sizeOf(context).width * 0.76,
           ),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withValues(alpha: 0.06),
-              blurRadius: 14,
-              offset: const Offset(0, 5),
+          margin: EdgeInsets.only(bottom: isGrouped ? 3 : 9),
+          padding: const EdgeInsets.fromLTRB(15, 11, 11, 7),
+          decoration: BoxDecoration(
+            color: isMine
+                ? Theme.of(context).colorScheme.primary
+                : Theme.of(context).colorScheme.surfaceContainerHighest,
+            borderRadius: BorderRadius.only(
+              topLeft: const Radius.circular(20),
+              topRight: const Radius.circular(20),
+              bottomLeft: Radius.circular(isMine ? 20 : 5),
+              bottomRight: Radius.circular(isMine ? 5 : 20),
             ),
-          ],
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.end,
-          children: [
-            Align(
-              alignment: Alignment.centerLeft,
-              child: Text(
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withValues(alpha: 0.06),
+                blurRadius: 14,
+                offset: const Offset(0, 5),
+              ),
+            ],
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Text(
                 content,
                 style: TextStyle(
                   fontSize: 15.5,
@@ -871,35 +871,36 @@ class _MessageBubble extends StatelessWidget {
                       : Theme.of(context).colorScheme.onSurface,
                 ),
               ),
-            ),
-            const SizedBox(height: 4),
-            Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Text(
-                  time,
-                  style: TextStyle(
-                    fontSize: 10.5,
-                    color: isMine
-                        ? Colors.white.withValues(alpha: 0.72)
-                        : Colors.grey.shade600,
+              const SizedBox(height: 4),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.end,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    time,
+                    style: TextStyle(
+                      fontSize: 10.5,
+                      color: isMine
+                          ? Colors.white.withValues(alpha: 0.72)
+                          : Colors.grey.shade600,
+                    ),
                   ),
-                ),
-                if (isMine) ...[
-                  const SizedBox(width: 4),
-                  Icon(
-                    isDelivered || isRead
-                        ? Icons.done_all_rounded
-                        : Icons.done_rounded,
-                    size: 15,
-                    color: isRead
-                        ? const Color(0xFFA9D9C0)
-                        : Colors.white.withValues(alpha: 0.78),
-                  ),
+                  if (isMine) ...[
+                    const SizedBox(width: 4),
+                    Icon(
+                      isDelivered || isRead
+                          ? Icons.done_all_rounded
+                          : Icons.done_rounded,
+                      size: 15,
+                      color: isRead
+                          ? const Color(0xFFA9D9C0)
+                          : Colors.white.withValues(alpha: 0.78),
+                    ),
+                  ],
                 ],
-              ],
-            ),
-          ],
+              ),
+            ],
+          ),
         ),
       ),
     );
