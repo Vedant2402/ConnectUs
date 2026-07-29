@@ -55,6 +55,14 @@ an icon-derived sage and cream palette, WhatsApp-inspired chat rows, light and
 dark appearance modes, a floating navigation ribbon, and swipeable in-page
 Updates, Calls, Chats, and Settings tabs.
 
+### Latest Profile and Platform Improvements
+
+The current build adds Firebase client services, Supabase avatar storage,
+profile-photo cropping and removal, a modernized profile editor, and a
+database-enforced seven-day cooldown between username changes. Uploaded
+profile photos now appear consistently in Settings, search results,
+conversation rows, profile previews, and chat headers.
+
 ---
 
 ## Overview
@@ -184,10 +192,15 @@ The project uses a single Flutter codebase for Android, iOS, and web-based devel
 ### Future Work
 
 - [x] Password reset
-- [ ] Push notifications
+- [x] Firebase Cloud Messaging client integration
+- [ ] Trusted server-side message notification delivery
 - [ ] Message pagination
 - [ ] Local message caching
-- [ ] Profile photographs
+- [x] Profile photographs
+- [x] Interactive avatar cropping
+- [x] Profile-photo removal
+- [x] Seven-day username-change cooldown
+- [x] Modern profile and Settings interface
 - [ ] Android production build
 - [ ] iOS production build
 - [ ] Integration testing
@@ -363,6 +376,10 @@ ConnectUs/
     │   │   └── startup_screen.dart
     │   │
     │   ├── core/
+    │   │   ├── services/
+    │   │   │   └── firebase_service.dart
+    │   │   ├── theme/
+    │   │   │   └── app_theme_controller.dart
     │   │   └── widgets/
     │   │       └── login_success_popup.dart
     │   │
@@ -375,6 +392,7 @@ ConnectUs/
     │   │   │
     │   │   ├── profile/
     │   │   │   └── presentation/
+    │   │   │       ├── avatar_crop_screen.dart
     │   │   │       └── username_setup_screen.dart
     │   │   │
     │   │   ├── user_search/
@@ -386,8 +404,8 @@ ConnectUs/
     │   │   │       └── home_screen.dart
     │   │   │
     │   │   ├── chat/
-    │   │       └── presentation/
-    │   │           └── chat_screen.dart
+    │   │   │   └── presentation/
+    │   │   │       └── chat_screen.dart
     │   │   │
     │   │   └── settings/
     │   │       └── presentation/
@@ -670,13 +688,20 @@ Apple, and web. The application:
 - Handles foreground and background notification events.
 - Reports uncaught native Flutter errors through Firebase Crashlytics.
 - Allows users to choose and upload profile photographs.
+- Opens every selected photograph in an interactive crop screen before upload.
+- Allows users to remove the current photograph and return to an initial avatar.
+- Displays the saved avatar throughout profile, Settings, search, chat, and
+  conversation interfaces.
 - Stores avatars in the public-read, owner-write Supabase `avatars` bucket.
+- Enforces username changes no more than once every seven days in both the
+  interface and PostgreSQL.
 
 Apply these migrations in chronological order before testing these features:
 
 ```text
 supabase/migrations/20260729_profile_avatar_storage.sql
 supabase/migrations/20260729_push_tokens.sql
+supabase/migrations/20260729_username_change_cooldown.sql
 ```
 
 Firebase client identifiers in `firebase_options.dart` are public application
