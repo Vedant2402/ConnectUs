@@ -406,13 +406,13 @@ class _SettingsScreenState extends State<SettingsScreen> {
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(22),
         border: Border.all(
-          color: tint.withValues(alpha: highlighted ? 0.28 : 0.18),
+          color: tint.withValues(alpha: highlighted ? 0.18 : 0.12),
         ),
         boxShadow: [
           BoxShadow(
-            color: tint.withValues(alpha: 0.10),
-            blurRadius: 24,
-            offset: const Offset(0, 8),
+            color: colors.shadow.withValues(alpha: 0.08),
+            blurRadius: 28,
+            offset: const Offset(0, 10),
           ),
         ],
       ),
@@ -421,15 +421,62 @@ class _SettingsScreenState extends State<SettingsScreen> {
         padding: padding,
         shape: const LiquidRoundedSuperellipse(borderRadius: 22),
         settings: LiquidGlassSettings(
-          glassColor: tint.withValues(alpha: highlighted ? 0.14 : 0.09),
-          blur: 10,
-          thickness: 18,
-          lightIntensity: 0.65,
-          glowIntensity: 0.55,
+          glassColor: colors.surface.withValues(alpha: 0.82),
+          blur: 14,
+          thickness: 16,
+          lightIntensity: 0.72,
+          glowIntensity: 0.42,
           shadowElevation: 2,
           platformViewFallbackColor: colors.surfaceContainerHigh,
         ),
         child: child,
+      ),
+    );
+  }
+
+  Widget buildFieldLabel(IconData icon, String label) {
+    final colors = Theme.of(context).colorScheme;
+
+    return Padding(
+      padding: const EdgeInsets.only(left: 4, bottom: 8),
+      child: Row(
+        children: [
+          Icon(icon, size: 17, color: colors.primary),
+          const SizedBox(width: 8),
+          Text(
+            label,
+            style: TextStyle(
+              fontSize: 13,
+              fontWeight: FontWeight.w700,
+              color: colors.onSurfaceVariant,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  InputDecoration modernFieldDecoration(String hint) {
+    final colors = Theme.of(context).colorScheme;
+
+    return InputDecoration(
+      hintText: hint,
+      filled: true,
+      fillColor: colors.surfaceContainerHighest.withValues(alpha: 0.72),
+      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 15),
+      border: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(17),
+        borderSide: BorderSide.none,
+      ),
+      enabledBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(17),
+        borderSide: BorderSide(
+          color: colors.outlineVariant.withValues(alpha: 0.45),
+        ),
+      ),
+      focusedBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(17),
+        borderSide: BorderSide(color: colors.primary, width: 1.6),
       ),
     );
   }
@@ -455,68 +502,128 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        const Text(
-                          'Profile',
-                          style: TextStyle(
-                            fontSize: 22,
-                            fontWeight: FontWeight.w800,
-                          ),
-                        ),
-                        const SizedBox(height: 18),
-                        Center(
-                          child: InkWell(
-                            onTap: isUploadingAvatar ? null : showAvatarActions,
-                            borderRadius: BorderRadius.circular(54),
-                            child: Stack(
-                              clipBehavior: Clip.none,
+                        Row(
+                          children: [
+                            Container(
+                              width: 42,
+                              height: 42,
+                              decoration: BoxDecoration(
+                                color: Theme.of(
+                                  context,
+                                ).colorScheme.primaryContainer,
+                                borderRadius: BorderRadius.circular(14),
+                              ),
+                              child: Icon(
+                                Icons.person_rounded,
+                                color: Theme.of(context).colorScheme.primary,
+                              ),
+                            ),
+                            const SizedBox(width: 12),
+                            const Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                CircleAvatar(
-                                  radius: 48,
-                                  backgroundColor: Theme.of(
-                                    context,
-                                  ).colorScheme.primaryContainer,
-                                  backgroundImage:
-                                      avatarUrl != null && avatarUrl!.isNotEmpty
-                                      ? NetworkImage(avatarUrl!)
-                                      : null,
-                                  child: avatarUrl == null || avatarUrl!.isEmpty
-                                      ? Text(
-                                          profileInitial,
-                                          style: TextStyle(
-                                            fontSize: 32,
-                                            fontWeight: FontWeight.w800,
-                                            color: Theme.of(
-                                              context,
-                                            ).colorScheme.primary,
-                                          ),
-                                        )
-                                      : null,
-                                ),
-                                Positioned(
-                                  right: -3,
-                                  bottom: -3,
-                                  child: CircleAvatar(
-                                    radius: 18,
-                                    backgroundColor: Theme.of(
-                                      context,
-                                    ).colorScheme.primary,
-                                    child: isUploadingAvatar
-                                        ? const SizedBox(
-                                            width: 18,
-                                            height: 18,
-                                            child: CircularProgressIndicator(
-                                              strokeWidth: 2,
-                                              color: Colors.white,
-                                            ),
-                                          )
-                                        : const Icon(
-                                            Icons.camera_alt_rounded,
-                                            size: 18,
-                                            color: Colors.white,
-                                          ),
+                                Text(
+                                  'Your profile',
+                                  style: TextStyle(
+                                    fontSize: 21,
+                                    fontWeight: FontWeight.w800,
                                   ),
                                 ),
+                                SizedBox(height: 2),
+                                Text(
+                                  'Personalize how people see you',
+                                  style: TextStyle(fontSize: 12.5),
+                                ),
                               ],
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 22),
+                        Center(
+                          child: DecoratedBox(
+                            decoration: BoxDecoration(
+                              shape: BoxShape.circle,
+                              gradient: LinearGradient(
+                                colors: [
+                                  Theme.of(context).colorScheme.primary,
+                                  Theme.of(context).colorScheme.tertiary,
+                                ],
+                                begin: Alignment.topLeft,
+                                end: Alignment.bottomRight,
+                              ),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: Theme.of(
+                                    context,
+                                  ).colorScheme.primary.withValues(alpha: 0.22),
+                                  blurRadius: 20,
+                                  offset: const Offset(0, 8),
+                                ),
+                              ],
+                            ),
+                            child: Padding(
+                              padding: const EdgeInsets.all(4),
+                              child: InkWell(
+                                onTap: isUploadingAvatar
+                                    ? null
+                                    : showAvatarActions,
+                                borderRadius: BorderRadius.circular(54),
+                                child: Stack(
+                                  clipBehavior: Clip.none,
+                                  children: [
+                                    CircleAvatar(
+                                      radius: 48,
+                                      backgroundColor: Theme.of(
+                                        context,
+                                      ).colorScheme.primaryContainer,
+                                      backgroundImage:
+                                          avatarUrl != null &&
+                                              avatarUrl!.isNotEmpty
+                                          ? NetworkImage(avatarUrl!)
+                                          : null,
+                                      child:
+                                          avatarUrl == null ||
+                                              avatarUrl!.isEmpty
+                                          ? Text(
+                                              profileInitial,
+                                              style: TextStyle(
+                                                fontSize: 32,
+                                                fontWeight: FontWeight.w800,
+                                                color: Theme.of(
+                                                  context,
+                                                ).colorScheme.primary,
+                                              ),
+                                            )
+                                          : null,
+                                    ),
+                                    Positioned(
+                                      right: -3,
+                                      bottom: -3,
+                                      child: CircleAvatar(
+                                        radius: 18,
+                                        backgroundColor: Theme.of(
+                                          context,
+                                        ).colorScheme.primary,
+                                        child: isUploadingAvatar
+                                            ? const SizedBox(
+                                                width: 18,
+                                                height: 18,
+                                                child:
+                                                    CircularProgressIndicator(
+                                                      strokeWidth: 2,
+                                                      color: Colors.white,
+                                                    ),
+                                              )
+                                            : const Icon(
+                                                Icons.camera_alt_rounded,
+                                                size: 18,
+                                                color: Colors.white,
+                                              ),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
                             ),
                           ),
                         ),
@@ -562,24 +669,23 @@ class _SettingsScreenState extends State<SettingsScreen> {
                           ),
                         ),
                         const SizedBox(height: 18),
+                        buildFieldLabel(Icons.badge_outlined, 'Display name'),
                         TextField(
                           controller: displayNameController,
                           textCapitalization: TextCapitalization.words,
-                          decoration: const InputDecoration(
-                            labelText: 'Display name',
-                            prefixIcon: Icon(Icons.badge_outlined),
+                          decoration: modernFieldDecoration(
+                            'Your display name',
                           ),
                         ),
                         const SizedBox(height: 16),
+                        buildFieldLabel(Icons.notes_rounded, 'Bio'),
                         TextField(
                           controller: bioController,
                           maxLength: 160,
                           minLines: 3,
                           maxLines: 5,
-                          decoration: const InputDecoration(
-                            labelText: 'Bio',
-                            alignLabelWithHint: true,
-                            prefixIcon: Icon(Icons.notes_rounded),
+                          decoration: modernFieldDecoration(
+                            'Tell people a little about yourself',
                           ),
                         ),
                         const SizedBox(height: 12),
