@@ -24,6 +24,8 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
   String conversationQuery = '';
   String conversationFilter = 'All';
   int selectedTab = 2;
+  String? currentAvatarUrl;
+  String? currentDisplayName;
 
   String? conversationError;
 
@@ -48,6 +50,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
       (_) => setPresence(true),
     );
     subscribeToHomeUpdates();
+    loadCurrentProfile();
     loadConversations();
   }
 
@@ -114,8 +117,33 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
   void scheduleConversationReload() {
     reloadTimer?.cancel();
     reloadTimer = Timer(const Duration(milliseconds: 300), () {
-      if (mounted) loadConversations(showLoading: false);
+      if (mounted) {
+        loadCurrentProfile();
+        loadConversations(showLoading: false);
+      }
     });
+  }
+
+  Future<void> loadCurrentProfile() async {
+    final userId = currentUserId;
+    if (userId == null) return;
+
+    try {
+      final profile = await Supabase.instance.client
+          .from('profiles')
+          .select('display_name, avatar_url')
+          .eq('id', userId)
+          .single();
+
+      if (!mounted) return;
+
+      setState(() {
+        currentDisplayName = profile['display_name']?.toString();
+        currentAvatarUrl = profile['avatar_url']?.toString();
+      });
+    } catch (error) {
+      debugPrint('Unable to load current profile: $error');
+    }
   }
 
   Future<void> openUserSearch() async {
@@ -742,6 +770,12 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
 
   Widget buildSettingsTab() {
     final email = Supabase.instance.client.auth.currentUser?.email ?? '';
+    final avatarUrl = currentAvatarUrl?.trim();
+    final hasAvatar = avatarUrl != null && avatarUrl.isNotEmpty;
+    final displayName = currentDisplayName?.trim() ?? '';
+    final avatarLetter = displayName.isEmpty
+        ? (email.isEmpty ? '?' : email.substring(0, 1).toUpperCase())
+        : displayName.substring(0, 1).toUpperCase();
 
     return SafeArea(
       child: ListView(
@@ -764,10 +798,16 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
             child: ListTile(
               leading: CircleAvatar(
                 backgroundColor: Theme.of(context).colorScheme.primaryContainer,
-                child: Icon(
-                  Icons.person_rounded,
-                  color: Theme.of(context).colorScheme.primary,
-                ),
+                backgroundImage: hasAvatar ? NetworkImage(avatarUrl) : null,
+                child: hasAvatar
+                    ? null
+                    : Text(
+                        avatarLetter,
+                        style: TextStyle(
+                          color: Theme.of(context).colorScheme.primary,
+                          fontWeight: FontWeight.w800,
+                        ),
+                      ),
               ),
               title: const Text(
                 'Profile',
@@ -780,6 +820,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                   MaterialPageRoute(builder: (_) => const SettingsScreen()),
                 );
                 if (mounted) {
+                  await loadCurrentProfile();
                   await loadConversations(showLoading: false);
                 }
               },
