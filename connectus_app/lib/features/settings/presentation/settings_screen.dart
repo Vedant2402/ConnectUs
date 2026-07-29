@@ -394,6 +394,46 @@ class _SettingsScreenState extends State<SettingsScreen> {
     }
   }
 
+  Widget buildSettingsSection({
+    required Widget child,
+    EdgeInsetsGeometry padding = const EdgeInsets.all(20),
+    bool highlighted = false,
+  }) {
+    final colors = Theme.of(context).colorScheme;
+    final tint = highlighted ? colors.primary : colors.secondary;
+
+    return DecoratedBox(
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(22),
+        border: Border.all(
+          color: tint.withValues(alpha: highlighted ? 0.28 : 0.18),
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: tint.withValues(alpha: 0.10),
+            blurRadius: 24,
+            offset: const Offset(0, 8),
+          ),
+        ],
+      ),
+      child: GlassCard(
+        useOwnLayer: true,
+        padding: padding,
+        shape: const LiquidRoundedSuperellipse(borderRadius: 22),
+        settings: LiquidGlassSettings(
+          glassColor: tint.withValues(alpha: highlighted ? 0.14 : 0.09),
+          blur: 10,
+          thickness: 18,
+          lightIntensity: 0.65,
+          glowIntensity: 0.55,
+          shadowElevation: 2,
+          platformViewFallbackColor: colors.surfaceContainerHigh,
+        ),
+        child: child,
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -409,7 +449,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
             : ListView(
                 padding: const EdgeInsets.all(20),
                 children: [
-                  GlassCard(
+                  buildSettingsSection(
+                    highlighted: true,
                     padding: const EdgeInsets.all(22),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
@@ -563,7 +604,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     ),
                   ),
                   const SizedBox(height: 16),
-                  GlassCard(
+                  buildSettingsSection(
                     padding: EdgeInsets.zero,
                     child: ValueListenableBuilder<ThemeMode>(
                       valueListenable: AppThemeController.mode,
@@ -583,7 +624,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     ),
                   ),
                   const SizedBox(height: 16),
-                  GlassCard(
+                  buildSettingsSection(
                     padding: const EdgeInsets.all(20),
                     child: ListTile(
                       contentPadding: EdgeInsets.zero,
