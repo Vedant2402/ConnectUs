@@ -1,7 +1,10 @@
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/foundation.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 
 class DefaultFirebaseOptions {
+  DefaultFirebaseOptions._();
+
   static FirebaseOptions get currentPlatform {
     if (kIsWeb) {
       return web;
@@ -18,30 +21,40 @@ class DefaultFirebaseOptions {
     }
   }
 
-  static const web = FirebaseOptions(
-    apiKey: 'AIzaSyAEKLsjuU9Apv3Ds06NZ8bH1aNcnOm8u4Y',
-    appId: '1:594829754514:web:a467518f9af7e169dde64b',
-    messagingSenderId: '594829754514',
-    projectId: 'connectus-a5c18',
-    authDomain: 'connectus-a5c18.firebaseapp.com',
-    storageBucket: 'connectus-a5c18.firebasestorage.app',
-    measurementId: 'G-W19LC9Z4MG',
+  static FirebaseOptions get web => FirebaseOptions(
+    apiKey: _required('FIREBASE_API_KEY'),
+    appId: _required('FIREBASE_WEB_APP_ID'),
+    messagingSenderId: _required('FIREBASE_MESSAGING_SENDER_ID'),
+    projectId: _required('FIREBASE_PROJECT_ID'),
+    authDomain: _required('FIREBASE_AUTH_DOMAIN'),
+    storageBucket: _required('FIREBASE_STORAGE_BUCKET'),
+    measurementId: _required('FIREBASE_MEASUREMENT_ID'),
   );
 
-  static const android = FirebaseOptions(
-    apiKey: 'AIzaSyAEKLsjuU9Apv3Ds06NZ8bH1aNcnOm8u4Y',
-    appId: '1:594829754514:android:b4bccda8ce8f2760dde64b',
-    messagingSenderId: '594829754514',
-    projectId: 'connectus-a5c18',
-    storageBucket: 'connectus-a5c18.firebasestorage.app',
+  static FirebaseOptions get android => FirebaseOptions(
+    apiKey: _required('FIREBASE_API_KEY'),
+    appId: _required('FIREBASE_ANDROID_APP_ID'),
+    messagingSenderId: _required('FIREBASE_MESSAGING_SENDER_ID'),
+    projectId: _required('FIREBASE_PROJECT_ID'),
+    storageBucket: _required('FIREBASE_STORAGE_BUCKET'),
   );
 
-  static const apple = FirebaseOptions(
-    apiKey: 'AIzaSyAEKLsjuU9Apv3Ds06NZ8bH1aNcnOm8u4Y',
-    appId: '1:594829754514:ios:acdb91e37d12711ddde64b',
-    messagingSenderId: '594829754514',
-    projectId: 'connectus-a5c18',
-    storageBucket: 'connectus-a5c18.firebasestorage.app',
-    iosBundleId: 'com.vedantkankate.connectus',
+  static FirebaseOptions get apple => FirebaseOptions(
+    apiKey: _required('FIREBASE_API_KEY'),
+    appId: _required('FIREBASE_APPLE_APP_ID'),
+    messagingSenderId: _required('FIREBASE_MESSAGING_SENDER_ID'),
+    projectId: _required('FIREBASE_PROJECT_ID'),
+    storageBucket: _required('FIREBASE_STORAGE_BUCKET'),
+    iosBundleId: _required('FIREBASE_IOS_BUNDLE_ID'),
   );
+
+  static String _required(String name) {
+    final value = dotenv.env[name]?.trim();
+
+    if (value == null || value.isEmpty) {
+      throw StateError('$name is missing from the .env file.');
+    }
+
+    return value;
+  }
 }

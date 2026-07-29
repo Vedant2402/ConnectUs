@@ -704,9 +704,15 @@ supabase/migrations/20260729_push_tokens.sql
 supabase/migrations/20260729_username_change_cooldown.sql
 ```
 
-Firebase client identifiers in `firebase_options.dart` are public application
-configuration. Service-account credentials, Firebase Admin credentials, APNs
-keys, and Supabase service-role keys must remain outside the Flutter client.
+Firebase client configuration is loaded from the local `.env` file by
+`firebase_options.dart`. Add the `FIREBASE_*` values shown in `.env.example`
+before running the application. The real `.env` file remains excluded from Git.
+
+Firebase client identifiers are public application configuration and can still
+be inspected in a compiled web or mobile client. API restrictions, Firebase
+Security Rules, and App Check provide the actual protection. Service-account
+credentials, Firebase Admin credentials, APNs keys, and Supabase service-role
+keys must always remain outside the Flutter client.
 
 For iPhone notifications, enable the Push Notifications and Background Modes
 capabilities in Xcode and upload an Apple APNs authentication key to Firebase.
